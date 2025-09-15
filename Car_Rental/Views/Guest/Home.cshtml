@@ -1,0 +1,620 @@
+﻿@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "RentGo - Car Rental in Minutes";
+}
+
+@model IEnumerable<Car_Rental.Models.Entities.Car>
+
+<!-- ============================================= -->
+<!--          PAGE SPECIFIC CSS STYLES             -->
+<!-- ============================================= -->
+<style>
+    /* Hero Section CSS */
+    .hero-section {
+        position: relative;
+        height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        overflow: hidden;
+    }
+
+    .bg-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Video full cover ah varum */
+        z-index: -1; /* Content kku keela irukkum */
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1; /* Text video mela clear ah varum */
+    }
+
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5); 
+            z-index: 1;
+        }
+
+        .hero-section .container {
+            position: relative;
+            z-index: 2;
+        }
+
+    .hero-title {
+        font-size: clamp(1.5rem, 6vw, 2.5rem); /* Responsive font size */
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-primary-custom {
+        background-color: #ffc107; /* Yellow button */
+        border-color: #ffc107;
+        color: #000;
+        padding: 14px 35px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px; /* Pill shape */
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary-custom:hover {
+            background-color: #ffca2c;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+    /* Team Section Custom Styles */
+    .team-section {
+        background-color: #f8f9fa; /* Light grey background for this section */
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+    }
+
+    .team-member {
+        text-align: center;
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+    .member-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid #ffc107;
+    }
+
+    .role {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .card-hover-simple {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card-hover-simple:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.15) !important;
+        }
+
+        .card-hover-simple .card-img-top {
+            transition: transform 0.4s ease;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .card-hover-simple:hover .card-img-top {
+            transform: scale(1.08); /* Image zooms in on hover */
+        }
+
+    .card-img-wrapper {
+        height: 220px; /* Ensure a fixed height for image area */
+    }
+
+
+    .filter-section-wrapper {
+        position: relative;
+        z-index: 10;
+        margin-top: -100px; /* Hero section mel overlap aaga */
+    }
+
+    .filter-form-container {
+        background: rgba(255, 255, 255, 0.95); /* Light background */
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .filter-form-container .form-label {
+            color: #343a40; /* Dark text for labels */
+            font-weight: 600;
+        }
+</style>
+
+<!-- ======================= HERO SECTION ======================= -->
+<section class="hero-section">
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="~/media/Video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8 hero-content">
+                <h1 class="hero-title">
+                    Hit the Road with Confidence <br />
+                    <span style="color:#ffc107;">RentGo</span> Has You Covered
+                </h1>
+                <p class="hero-subtitle">Find the perfect car for your next adventure.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container filter-section-wrapper">
+    <div class="filter-form-container">
+        <h3 class="mb-3 text-center">Find Your Ride</h3>
+
+        <form asp-controller="Guest" asp-action="Home" method="get">
+            <!-- Validation pizhagalai kaattum idam -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            }
+
+            <div class="row g-3 align-items-end">
+                <!-- Pick-up Date -->
+                <div class="col-lg-5 col-md-6">
+                    <label for="pickupDate" class="form-label">Pick-up Date</label>
+                    <input type="date" id="pickupDate" name="pickupDate" class="form-control form-control-lg"
+                           value="@Context.Request.Query["pickupDate"]">
+                </div>
+
+                <!-- Return Date -->
+                <div class="col-lg-5 col-md-6">
+                    <label for="returnDate" class="form-label">Return Date</label>
+                    <input type="date" id="returnDate" name="returnDate" class="form-control form-control-lg"
+                           value="@Context.Request.Query["returnDate"]">
+                </div>
+
+                <!-- Search Button -->
+                <div class="col-lg-2 col-md-12">
+                    <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- ======================= CARS SECTION ======================= -->
+<div class="container my-5" id="carsSection">
+    <h2 class="mb-4 fw-bold">Our Fleet</h2>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var car in Model)
+            {
+                <div class="col-12 col-md-6 col-lg-4 d-flex align-items-stretch">
+                    <div class="card h-100 border-0 shadow-sm card-hover-simple">
+                        <div class="card-img-wrapper overflow-hidden">
+                            <img src="@car.ImageUrl" class="card-img-top" alt="@car.Brand @car.Model" />
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title fw-bold text-dark mb-0">@car.Brand @car.Model</h5>
+                                <small class="text-muted fw-bold">@car.Year</small>
+                            </div>
+                            <div class="mt-auto pt-3">
+                                <p class="fs-4 fw-bold text-dark mb-2">
+                                    $@car.RentalPricePerDay <small class="text-muted fw-normal fs-6">/ day</small>
+                                </p>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-outline-dark" data-car-id="@car.CarId" data-bs-toggle="modal" data-bs-target="#carDetailsModal">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Thedal nadanthu, result illai enral mattum intha message-ai kaattavum -->
+        @if (Context.Request.Query.ContainsKey("pickupDate"))
+        {
+            <div class="text-center p-5 border rounded bg-white shadow-sm">
+                <i class="bi bi-search fs-1 text-warning"></i>
+                <h4 class="mt-3">No Cars Found</h4>
+                <p class="fs-5 text-muted mb-0">Sorry, no cars are available for the selected dates. Please try a different date range.</p>
+            </div>
+        }
+        else if (ViewBag.ValidationFailed == true)
+        {
+            <div class="text-center p-5 border rounded bg-white shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
+                <h4 class="mt-3">Invalid Dates</h4>
+                <p class="fs-5 text-muted mb-0">Please correct the date selection above to find available cars.</p>
+            </div>
+        }
+        else
+        {
+            <div class="text-center p-5 border rounded bg-white shadow-sm">
+                <i class="bi bi-info-circle fs-1 text-primary"></i>
+                <h4 class="mt-3">Welcome to RentGo!</h4>
+                <p class="fs-5 text-muted mb-0">Please select your desired dates above to find the perfect car for your trip.</p>
+            </div>
+        }
+    }
+</div>
+<!-- ======================= ABOUT SECTION ======================= -->
+<div id="about">
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <span class="badge bg-warning text-dark mb-2">Our Story</span>
+                    <h2 class="display-5 fw-bold">The RentGo Journey</h2>
+                    <p class="text-muted">Founded in 2025, RentGo started with a simple goal: to revolutionize the car rental industry. We believed renting a car should be more than a transaction; it should be a seamless experience, giving you the freedom to explore.</p>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://a.storyblok.com/f/141640/2560x900/48c2689c7f/prototype-large.png" class="img-fluid rounded shadow" alt="Yellow sports car">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="team-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Meet Our Members</h2>
+                <p class="text-muted">The passionate individuals dedicated to making your rental experience exceptional.</p>
+            </div>
+            <div class="row justify-content-center g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member">
+                        <img src="~/Media/Puvi.jpeg" alt="Prabakaran Puviraj" class="member-img mb-3">
+                        <h5 class="fw-bold mb-1">Prabakaran Puviraj</h5>
+                        <div class="role">Founder & CEO</div>
+                        <p class="description mt-2">Puvi's vision and passion for cars are the driving force behind RentGo’s success.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member">
+                        <img src="~/Media/Kavi.jpeg" alt="Kavishna Parameshwararaj" class="member-img mb-3">
+                        <h5 class="fw-bold mb-1">Kavishna Parameshwararaj</h5>
+                        <div class="role">Head of Operations</div>
+                        <p class="description mt-2">Kavishna ensures that every aspect of our service runs smoothly, from fleet to logistics.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member">
+                        <img src="~/Media/Ragu.jpeg" alt="Raguram" class="member-img mb-3">
+                        <h5 class="fw-bold mb-1">Raguram</h5>
+                        <div class="role">Customer Experience Manager</div>
+                        <p class="description mt-2">Raguram leads our team, dedicated to providing memorable experiences for every client.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ======================= FEATURES SECTION ======================= -->
+<div class="container">
+    <section class="features-section py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Why Choose RentGo?</h2>
+            <p class="text-muted">We provide more than just a car. We deliver an experience.</p>
+        </div>
+        <div class="row text-center">
+            <!-- =================== VARISAI 1 =================== -->
+            <!-- Wide Selection -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="icon">
+                        <i class="fas fa-car fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 fw-bold">Wide Selection</h3>
+                    <p>Choose from a variety of cars to suit your needs.</p>
+                </div>
+            </div>
+
+            <!-- Reliable Service -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="icon">
+                        <i class="fas fa-handshake fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 fw-bold">Reliable Service</h3>
+                    <p>Our commitment to providing dependable rental options.</p>
+                </div>
+            </div>
+
+            <!-- Competitive Prices -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="icon">
+                        <i class="fas fa-dollar-sign fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 fw-bold">Competitive Prices</h3>
+                    <p>Get the best rates for quality vehicles on the market.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row text-center mt-md-4">
+            <!-- =================== VARISAI 2 (PUTHIYA ANUSHANGAL) =================== -->
+            <!-- No Extra Fees -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="icon">
+                        <i class="fas fa-receipt fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 fw-bold">No Extra Fees</h3>
+                    <p>What you see is what you pay. No hidden charges guaranteed.</p>
+                </div>
+            </div>
+
+            <!-- Optional Insurance -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="icon">
+                        <i class="fas fa-shield-alt fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 fw-bold">Optional Insurance</h3>
+                    <p>You can get full coverage insurance when booking for a worry-free trip.</p>
+                </div>
+            </div>
+
+            <!-- Hire a Driver -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="icon">
+                        <i class="fas fa-user-tie fa-3x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 fw-bold">Hire a Driver</h3>
+                    <p>You can also choose to hire a professional and reliable driver if you want.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ======================= CONTACT SECTION ======================= -->
+<section id="contact" class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Get In Touch</h2>
+            <p class="text-muted">We're here to help. Contact us anytime for inquiries or support.</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="card text-center h-100 border-0 shadow-sm p-4">
+                    <div class="mb-3"><i class="bi bi-geo-alt-fill text-warning fs-1"></i></div>
+                    <h5 class="fw-bold mb-2">Address</h5>
+                    <p class="mb-0 text-muted">Kankesanthurai Road, Jaffna, Sri Lanka</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card text-center h-100 border-0 shadow-sm p-4">
+                    <div class="mb-3"><i class="bi bi-envelope-fill text-warning fs-1"></i></div>
+                    <h5 class="fw-bold mb-2">Mail Us</h5>
+                    <p class="mb-0 text-muted">rentgo19@gmail.com</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card text-center h-100 border-0 shadow-sm p-4">
+                    <div class="mb-3"><i class="bi bi-telephone-fill text-warning fs-1"></i></div>
+                    <h5 class="fw-bold mb-2">Telephone</h5>
+                    <p class="mb-0 text-muted">(+94) 75 200 4256</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= MODALS & SCRIPTS ======================= -->
+<!-- Car Details Modal -->
+<div class="modal fade" id="carDetailsModal" tabindex="-1" aria-labelledby="carDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="carDetailsModalLabel">Car Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="carDetailsContent">
+                <!-- Content will be loaded by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+                document.addEventListener('DOMContentLoaded', () => {
+            var carDetailsModal = document.getElementById('carDetailsModal');
+            if (carDetailsModal) {
+                var carDetailsContent = document.getElementById('carDetailsContent');
+
+                carDetailsModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    var carId = button.getAttribute('data-car-id');
+
+                    // Set loading state
+                    carDetailsContent.innerHTML = '<div class="d-flex justify-content-center p-5"><div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+                    fetch(`/Car/GetCarDetails/${carId}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(car => {
+                            let offerText = "";
+                            if (car.offerPercentage && car.offerPercentage > 0) {
+                                offerText = `<span class="badge bg-success fs-6">${car.offerPercentage}% OFF</span>`;
+                            } else if (car.offerAmount && car.offerAmount > 0) {
+                                offerText = `<span class="badge bg-success fs-6">$${car.offerAmount} OFF</span>`;
+                            }
+
+                            // =========================================================
+                            //      PUTHIYA, MERUGETRAPPATTA MODAL BODY HTML
+                            // =========================================================
+                            carDetailsContent.innerHTML = `
+                              <div class="row g-4">
+                                <!-- Image Column -->
+                                <div class="col-lg-6">
+                                  <img src="${car.imageUrl || '/images/default-car.png'}" alt="${car.brand} ${car.model}" class="img-fluid rounded shadow-sm">
+                                </div>
+
+                                <!-- Details Column -->
+                                <div class="col-lg-6 d-flex flex-column">
+                                  <div>
+                                    <!-- Title -->
+                                    <h2 class="fw-bold mb-1">${car.brand} ${car.model}</h2>
+                                    <p class="text-muted">${car.year}</p>
+                                  </div>
+
+                                  <!-- Key Specs with Icons -->
+                                  <div class="d-flex flex-wrap gap-4 border-top border-bottom py-3 my-3">
+                                      <div class="text-center">
+                                          <i class="bi bi-fuel-pump-fill fs-4 text-secondary"></i>
+                                          <p class="mb-0 small">${car.fuelType}</p>
+                                      </div>
+                                      <div class="text-center">
+                                          <i class="bi bi-gear-fill fs-4 text-secondary"></i>
+                                          <p class="mb-0 small">${car.transmission}</p>
+                                      </div>
+                                      <div class="text-center">
+                                          <i class="bi bi-people-fill fs-4 text-secondary"></i>
+                                          <p class="mb-0 small">5 Seats</p> <!-- Example spec -->
+                                      </div>
+                                  </div>
+
+                                  <!-- Price & CTA Section -->
+                                  <div class="mt-auto">
+                                      ${offerText}
+                                      <p class="display-5 fw-bold text-dark mb-1">
+                                        $${car.rentalPricePerDay}
+                                        <span class="fs-6 fw-normal text-muted">/day</span>
+                                      </p>
+                                      <small class="text-muted d-block mb-3">Registration: ${car.registrationNumber}</small>
+
+                                      <!-- Buttons (Inside the modal body) -->
+                                      <div class="d-grid gap-2">
+                                          <a href="/" class="btn btn-warning fw-bold">Your ride is just a login away!</a>
+                                          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                      </div>
+                                  </div>
+                                </div>
+                              </div>
+                            `;
+                        })
+                        .catch(error => {
+                            carDetailsContent.innerHTML = `
+                                <div class="text-center p-5">
+                                    <p class="text-danger">Failed to load car details. Please try again later.</p>
+                                    <button type="button" class="btn btn-outline-secondary mt-3" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            `;
+                        });
+                });
+            }
+        });
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const pickupDateInput = document.getElementById('pickupDate');
+            const returnDateInput = document.getElementById('returnDate');
+
+            // 1. Pickup date-in minimum thethiyai indraiya thethiyaga set seithal
+            const today = new Date().toISOString().split('T')[0];
+            pickupDateInput.setAttribute('min', today);
+
+            // 2. Pickup date maariyavudan, return date-in minimum thethiyai maatruthal
+            pickupDateInput.addEventListener('change', function () {
+                const pickupDateValue = pickupDateInput.value;
+                if (pickupDateValue) {
+                    // Return date-in minimum thethiyai, pickup date-ku adutha naal aaga set seithal
+                    let minReturnDate = new Date(pickupDateValue);
+                    minReturnDate.setDate(minReturnDate.getDate() + 1);
+
+                    const minReturnDateString = minReturnDate.toISOString().split('T')[0];
+                    returnDateInput.setAttribute('min', minReturnDateString);
+
+                    // Oru velai return date munbe set seiyappattu, ippothu thavaraga irunthal, athai clear seithal
+                    if (returnDateInput.value && returnDateInput.value <= pickupDateValue) {
+                        returnDateInput.value = '';
+                    }
+                } else {
+                    // Pickup date clear seithal, return date-in minimum-aiyum neekkavum
+                     returnDateInput.removeAttribute('min');
+                }
+            });
+
+            // Page load aagum pothe, return date-in minimum correct aaga irukkiratha enru check seithal
+            // (Ithu page refresh aagum pothu aavasiyam)
+             if (pickupDateInput.value) {
+                let minReturnDate = new Date(pickupDateInput.value);
+                minReturnDate.setDate(minReturnDate.getDate() + 1);
+                returnDateInput.setAttribute('min', minReturnDate.toISOString().split('T')[0]);
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // URL-il ulla query parameters-ai eduthal
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // 'pickupDate' enra parameter URL-il irukkiratha enru parthal.
+            // Appadi irunthal, athu oru thedalin mudivu enru artham.
+            if (urlParams.has('pickupDate')) {
+                // 'carsSection' enra id konda element-ai kandupitithal
+                const carsSection = document.getElementById('carsSection');
+
+                // Antha element irunthal, atharku neraga smoothly scroll seithal
+                if (carsSection) {
+                    carsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    </script>
+}

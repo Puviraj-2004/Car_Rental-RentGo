@@ -1,0 +1,258 @@
+﻿@{
+    ViewData["Title"] = "Sign In";
+    Layout = "_LoginLayout"; // Layout is used, but we will override its background.
+}
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Bootstrap Icons (for the error message icon) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+<style>
+    /* 1. Layout-il irunthu varum background-ai reset seigirom */
+    body {
+        background: none !important;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* 2. Video irukkum section-ukkaana styles */
+    .hero-section {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* Video-vin oraingal theriyamal maraikka */
+    }
+
+    .bg-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+        /* --- Video-vai konjam blur seigirom, appothaan munnadi irukkum form theliva theriyum --- */
+        /* filter: blur(8px); */
+        transform: scale(1.1);
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 3. ITHU THAAN MAATTRAM SEIYAPPATTA MUKKIYA STYLE (GLASSMORPHISM CARD) */
+    .login-card-glass {
+        /* Pinnadi iruppathai kaatta transparent background */
+        background: rgba(255, 255, 255, 0.1);
+        /* Pinnadi iruppathai BLUR seiyum mukkiya property */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px); /* Safari browser-ukkaaga */
+        /* Sariyaana look-ukkaaga sila extra styles */
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        padding: 40px 35px;
+        max-width: 450px;
+        margin: auto;
+    }
+
+        /* 4. Text-ellam vellai niram-aaga maattrugirom, appothaan thelivaaga theriyum */
+        .login-card-glass h2 {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .login-card-glass .sub-heading {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    /* 5. Input fields-aiyum transparent-aaga maattrugirom */
+    .form-control-glass {
+        width: 100%;
+        padding: 12px 15px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+        .form-control-glass::placeholder {
+            color: #ddd;
+        }
+
+        .form-control-glass:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: none;
+        }
+
+    /* 6. Error message-ukkaana puthiya glass style */
+    .alert-glass-danger {
+        background: rgba(220, 53, 69, 0.5);
+        color: #fff;
+        border: 1px solid rgba(220, 53, 69, 0.7);
+        backdrop-filter: blur(5px);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .alert-glass-danger i {
+            margin-right: 0.5rem;
+        }
+
+    /* 7. Button style (ithu solid-aagave irukkattum, appothaan click seiya thelivaaga theriyum) */
+    .btn-submit-custom {
+        width: 100%;
+        padding: 12px;
+        background-color: #0d6efd; /* Blue color for contrast */
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .btn-submit-custom:hover {
+            background-color: #0b5ed7;
+        }
+
+    /* 8. Keela irukkum link-ukkaana niram maattram */
+    .footer-text {
+        text-align: center;
+        margin-top: 1.5rem; /* Reduced margin slightly */
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+        .footer-text a {
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .footer-text a:hover {
+                text-decoration: underline;
+            }
+
+    /* PUTHUSAAGA ADD SEIYAPPATTA STYLE - 'or' separator-ukku */
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 1.5rem 0; /* Mela கீழ space */
+    }
+
+        .separator::before,
+        .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .separator:not(:empty)::before {
+            margin-right: .5em;
+        }
+
+        .separator:not(:empty)::after {
+            margin-left: .5em;
+        }
+
+
+    /* Mobile-il nandraga therivatharku */
+    @@media (max-width: 576px) {
+        .login-card-glass {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<section class="hero-section">
+    <!-- Pinadiyil odum video -->
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="~/media/Video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+
+                <!-- Munadiyil theriyum puthiya glass login form card -->
+                <div class="login-card-glass">
+
+                    <h2>Welcome Back</h2>
+                    <p class="sub-heading">Enter your details to sign in</p>
+
+                    <form asp-controller="User" asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+
+                        @if (ViewBag.ErrorMessage != null)
+                        {
+                            <div class="alert-glass-danger">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span>@ViewBag.ErrorMessage</span>
+                            </div>
+                        }
+
+                        <div class="form-group">
+                            <input type="text" name="username" class="form-control-glass" placeholder="Email or Phonenumber" required>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control-glass" placeholder="Password" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn-submit-custom">Sign In</button>
+                        </div>
+                    </form>
+
+                    <!-- ================================================== -->
+                    <!-- INGEY THAAN PUTHU FUNCTION ADD PANNIRUKKEN -->
+                    <!-- ================================================== -->
+                    <!-- 'or' Separator -->
+                    <div class="separator">or</div>
+
+                    <!-- Guest Button -->
+                    <div class="d-grid">
+                        <a asp-controller="Guest" asp-action="Home" class="btn btn-outline-light fw-bold">
+                            Continue as Guest
+                        </a>
+                    </div>
+
+                    <!-- ================================================== -->
+
+                    <div class="footer-text">
+                        Don’t have an account? <a asp-controller="User" asp-action="Register">Sign Up</a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

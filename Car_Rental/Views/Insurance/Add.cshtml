@@ -1,0 +1,51 @@
+﻿@model Car_Rental.Models.Entities.Insurance
+@{
+    Layout = "_AdminLayout"; // Ensure it uses the LoginLayout
+}
+@{
+    ViewData["Title"] = "Add New Insurance";
+}
+
+<div class="container my-5">
+    <div class="card shadow-lg rounded-4 p-4">
+        <div class="card-header text-white text-center"
+             style="background: linear-gradient(90deg,#0B2545,#13678A); font-size:1.8rem; font-weight:700;">
+            Add New Insurance Policy
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Add" method="post" novalidate>
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label fw-bold">Policy Name</label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. Basic Coverage" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="CoveragePercentage" class="form-label fw-bold"></label>
+                        <input asp-for="CoveragePercentage" type="number" step="1" min="1" max="100" class="form-control" placeholder="e.g. 90 for 90%" />
+                        <span asp-validation-for="CoveragePercentage" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Description" class="form-label fw-bold"></label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter a brief description of what this policy covers..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a asp-action="List" class="btn btn-outline-secondary me-3">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Insurance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

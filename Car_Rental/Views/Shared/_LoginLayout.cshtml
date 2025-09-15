@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Car_Rental</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Bootstrap Icons (for the car icon) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            /* Background Gradient */
+            background: linear-gradient(135deg, #0B2545, #13678A);
+            /* Font for the page */
+            font-family: 'Poppins', sans-serif;
+            /* These three properties center the content vertically and horizontally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Removing the fixed-width .auth-card style from here */
+        /* Each page will now control its own width */
+
+    </style>
+</head>
+<body>
+
+    <!-- This will render the main content from pages like Register.cshtml -->
+    @RenderBody()
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Renders scripts from other pages (like validation scripts) -->
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

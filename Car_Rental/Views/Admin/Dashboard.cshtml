@@ -1,0 +1,181 @@
+﻿@{
+    Layout = "_AdminLayout"; // Ensure it uses the LoginLayout
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<body>
+<div class="container-fluid mt-4">
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="changePasswordModalLabel">
+                        <i class="bi bi-key-fill"></i> Set Your New Password
+                    </h5>
+                    <!-- Inga close button illa, so user kandippa maathithaan aaganum -->
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">For security reasons, you must change your initial password before you can proceed.</p>
+
+                    <!-- Indha form thaan AJAX moolamaaga submit aagum -->
+                    <form id="changePasswordForm">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Error messages kaatturadharku oru idam -->
+                        <div id="passwordErrorAlert" class="alert alert-danger d-none" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input type="password" name="NewPassword" class="form-control" id="newPasswordInput" placeholder="New Password" required>
+                            <label for="newPasswordInput">New Password</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="password" name="ConfirmPassword" class="form-control" id="confirmPasswordInput" placeholder="Confirm New Password" required>
+                            <label for="confirmPasswordInput">Confirm New Password</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary w-100" form="changePasswordForm">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Stats -->
+    <div class="row g-4">
+
+        <!-- Total Cars -->
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-primary text-white rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1">Total Cars</h6>
+                            <h3 class="fw-bold mb-0">@Model.TotalCars</h3>
+                        </div>
+                        <i class="bi bi-car-front-fill fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Bookings -->
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-success text-white rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1">Total Bookings</h6>
+                            <h3 class="fw-bold mb-0">@Model.TotalBookings</h3>
+                        </div>
+                        <i class="bi bi-journal-bookmark-fill fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Customers -->
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-warning text-dark rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1">Active Customers</h6>
+                            <h3 class="fw-bold mb-0">@Model.ActiveCustomers</h3>
+                        </div>
+                        <i class="bi bi-people-fill fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Cars -->
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-secondary text-white rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1">Available Cars</h6>
+                            <h3 class="fw-bold mb-0">@Model.AvailableCars</h3>
+                        </div>
+                        <i class="bi bi-check-circle-fill fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue -->
+        @* <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-success text-white rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1">Total Revenue</h6>
+                            <h3 class="fw-bold mb-0">₹@Model.TotalRevenue.ToString("N0")</h3>
+                        </div>
+                        <i class="bi bi-currency-rupee fs-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>  *@
+    </div> 
+</div>
+    @section Scripts {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+
+                // Controller'la irundhu varra flag'ah check panrom
+                const mustChangePassword = @Html.Raw(Json.Serialize(Model.MustChangePassword));
+
+                if (mustChangePassword) {
+                    // Modal'ah open seiyum code
+                    var passwordModalElement = document.getElementById('changePasswordModal');
+                    var passwordModal = new bootstrap.Modal(passwordModalElement);
+                    passwordModal.show();
+
+                    // Form'ah select panrom
+                    var changePasswordForm = document.getElementById('changePasswordForm');
+                    var errorAlert = document.getElementById('passwordErrorAlert');
+
+                    // Form submit seiyumbodhu enna seiyanum'nu solrom
+                    changePasswordForm.addEventListener('submit', function (event) {
+                        event.preventDefault(); // Page reload aaguradhai thadukkurom
+
+                        // Form'la irukkura data'vai eduthu, AJAX moolamaaga anuppurom
+                        fetch('/Admin/UpdatePassword', {
+                            method: 'POST',
+                            body: new FormData(changePasswordForm),
+                            headers: {
+                                // AntiForgeryToken'oda serthu anuppanum
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Vetrigaramaaga mudindhaal, modal'ah close pannittu, page'ah refresh panrom
+                                passwordModal.hide();
+                                // Ungalukku vendumnaal oru success message kaattalam
+                                alert('Password updated successfully! The page will now reload.');
+                                location.reload();
+                            } else {
+                                // Tholvi adaindhaal, error message'ah kaattrom
+                                errorAlert.textContent = data.message;
+                                errorAlert.classList.remove('d-none');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            errorAlert.textContent = 'An unexpected error occurred. Please try again.';
+                            errorAlert.classList.remove('d-none');
+                        });
+                    });
+                }
+            });
+        </script>
+    }
+</body>
+
+     
