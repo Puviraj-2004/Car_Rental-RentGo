@@ -21,13 +21,14 @@ namespace Car_Rental.Controllers
 
         public async Task<IActionResult> Home()
         {
-            var topRatedCars = await _context.Cars
-                .Where(c => c.Status == CarStatus.Available) // Homepage should only show cars that are currently available
-                .OrderByDescending(c => c.Rating)
-                .Take(6)
+            var allCars = await _context.Cars
+                .OrderByDescending(c => c.Rating) // rating order same-a வைத்துக்கலாம்
+                .Take(6) // still only 6 cars
                 .ToListAsync();
-            return View(topRatedCars);
+
+            return View(allCars);
         }
+
 
         // =========================================================================
         //          THIS IS THE FINAL, PERFECT VERSION OF YOUR CARS ACTION

@@ -14,8 +14,12 @@ namespace Car_Rental.Models.Entities
         public string BookingReference { get; set; } = null!;
 
         [Required]
-        public int UserID { get; set; }
-        public User User { get; set; } = null!;
+        public int? UserID { get; set; }
+        public User? User { get; set; } = null!;
+
+        [Required]
+        public int? GuestID { get; set; } // Nullable: For guest users
+        public Guest? Guest { get; set; }
 
         [Required]
         public int CarID { get; set; }
@@ -30,7 +34,7 @@ namespace Car_Rental.Models.Entities
 
         [Required(ErrorMessage = "Booking date is required.")]
         [DataType(DataType.Date)]
-        public DateTime BookingDate { get; set; }
+        public DateTime BookingDate { get; set; } = DateTime.Now;
 
         [Required]
         [DataType(DataType.Date)]

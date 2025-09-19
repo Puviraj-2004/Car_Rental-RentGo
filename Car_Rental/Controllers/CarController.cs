@@ -222,5 +222,37 @@ namespace Car_Rental.Controllers
                                      .Where(s => s != CarStatus.Booked);
             ViewBag.StatusList = new SelectList(statuses);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableCars(DateTime pickupDate, DateTime returnDate, int currentCarId)
+        {
+            // Find IDs of all cars that are booked during the selected period
+            var unavailableCarIds = await _context.Bookings
+                .Where(b => b.Status != BookingStatus.Cancelled &&
+                            b.PickupDate < returnDate &&
+                            b.ReturnDate > pickupDate)
+                .Select(b => b.CarID)
+                .Distinct()
+                .ToListAsync();
+
+            // Get all cars that are generally rentable, are not in the unavailable list,
+            // AND are not the car the user is currently viewing.
+            var availableCars = await _context.Cars
+                .Where(c => c.Status != CarStatus.NotAvailable &&
+                            c.Status != CarStatus.UnderMaintenance &&
+                            c.CarId != currentCarId && // Exclude the current car
+                            !unavailableCarIds.Contains(c.CarId))
+                .Select(c => new { // Select only the data we need for the modal
+                    c.CarId,
+                    c.Brand,
+                    c.Model,
+                    c.Year,
+                    c.ImageUrl,
+                    c.RentalPricePerDay
+                })
+                .ToListAsync();
+
+            return Json(availableCars);
+        }
     }
 }
