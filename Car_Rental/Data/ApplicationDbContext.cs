@@ -15,7 +15,6 @@ namespace Car_Rental.Data
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Payment> Payments { get; set; }
-        public DbSet<DamageReport> DamageReports { get; set; }
         public DbSet<Insurance> Insurances { get; set; }
         public DbSet<DiscountCode> DiscountCodes { get; set; }
         public DbSet<Invoice> Invoices { get; set; }

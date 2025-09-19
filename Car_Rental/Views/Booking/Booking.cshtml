@@ -1,681 +1,317 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Booking Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+﻿@using Car_Rental.Models.Entities
+@using Car_Rental.Enum
+@model Car_Rental.Models.Entities.Booking
+
+@{
+    var car = ViewBag.SelectedCar as Car;
+    ViewData["Title"] = "Complete Your Booking";
+}
+
+@section Styles {
     <style>
-        :root {
-            --primary: #4e73df;
-            --secondary: #6f42c1;
-            --success: #1cc88a;
-            --info: #36b9cc;
-            --warning: #f6c23e;
-            --danger: #e74a3b;
-            --light: #f8f9fc;
-            --dark: #5a5c69;
+        .booking-card {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        body {
-            background-color: #f8f9fc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        #wrapper {
-            display: flex;
-        }
-
-        #sidebar {
-            min-height: 100vh;
-            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            width: 250px;
-            transition: all 0.3s;
-        }
-
-            #sidebar .sidebar-brand {
-                padding: 20px 15px;
-                font-size: 20px;
-                font-weight: 800;
-                text-align: center;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            .booking-card .card-header {
+                background-color: #343a40;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-bottom: 5px solid #ffc107;
             }
 
-            #sidebar .sidebar-nav {
-                padding: 0;
-                list-style: none;
+            .booking-card .list-group-item {
+                border-bottom: 1px solid #f0f0f0 !important;
+                padding: 0.85rem 1.5rem;
             }
 
-                #sidebar .sidebar-nav li {
-                    position: relative;
+                .booking-card .list-group-item .bi {
+                    color: #0d6efd;
+                    margin-right: 1rem;
+                    width: 20px;
                 }
 
-                    #sidebar .sidebar-nav li a {
-                        padding: 15px 20px;
-                        display: block;
-                        color: rgba(255, 255, 255, 0.8);
-                        text-decoration: none;
-                        transition: all 0.3s;
-                    }
-
-                        #sidebar .sidebar-nav li a:hover,
-                        #sidebar .sidebar-nav li a.active {
-                            color: #fff;
-                            background: rgba(255, 255, 255, 0.1);
-                        }
-
-                        #sidebar .sidebar-nav li a i {
-                            margin-right: 10px;
-                            width: 20px;
-                            text-align: center;
-                        }
-
-        #content {
-            flex: 1;
-            overflow-x: hidden;
+        .star-rating .bi-star-fill {
+            color: #ffc107;
         }
 
-        .navbar {
-            background-color: white;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            padding: 1rem 1.5rem;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
+        .price-display {
             font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
         }
 
-        .card {
-            border: none;
-            border-radius: 0.35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-            background-color: #f8f9fc;
-            border-bottom: 1px solid #e3e6f0;
-            padding: 0.75rem 1.25rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .stat-card {
-            border-left: 4px solid;
-            transition: transform 0.3s;
-        }
-
-            .stat-card:hover {
-                transform: translateY(-5px);
-            }
-
-            .stat-card.primary {
-                border-left-color: var(--primary);
-            }
-
-            .stat-card.success {
-                border-left-color: var(--success);
-            }
-
-            .stat-card.warning {
-                border-left-color: var(--warning);
-            }
-
-            .stat-card.danger {
-                border-left-color: var(--danger);
-            }
-
-        .table th {
-            border-top: none;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .badge-status {
-            padding: 0.5em 0.8em;
-            border-radius: 0.35rem;
-            font-weight: 600;
-        }
-
-        .btn-action {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            border-radius: 0.2rem;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 250px;
-        }
-
-        .filter-section {
-            background-color: white;
-            border-radius: 0.35rem;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 2rem;
-            height: 2rem;
-            vertical-align: text-bottom;
-            border: 0.25em solid currentColor;
-            border-right-color: transparent;
-            border-radius: 50%;
-            animation: spinner-border 0.75s linear infinite;
-        }
-
-        ?keyframes spinner-border {
-            to
-
-        {
-            transform: rotate(360deg);
-        }
-
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: #6c757d;
-        }
-
-            .empty-state i {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-            }
-
-        ?media (max-width: 768px) {
-            #sidebar
-
-        {
-            width: 80px;
-        }
-
-        #sidebar .sidebar-brand span,
-        #sidebar .sidebar-nav li a span {
+        #insuranceDescription, #driverDetails {
             display: none;
+            background-color: #e9f5ff;
+            border-left: 5px solid #0d6efd;
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
+            border-radius: 0.25rem;
         }
 
-        #sidebar .sidebar-nav li a i {
-            margin-right: 0;
-            font-size: 1.2rem;
+        .driver-photo-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .form-section-heading {
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ffc107;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
         }
     </style>
-</head>
-<body>
-    <div id="wrapper">
-        @* <!-- Sidebar -->
-        <div id="sidebar">
-        <div class="sidebar-brand">
-        <i class="fas fa-hotel"></i> <span>Admin Panel</span>
+}
+
+@if (car == null)
+{
+    <div class="alert alert-danger text-center mt-5">
+        <h1 class="display-4"><i class="bi bi-exclamation-triangle-fill"></i> Error: Car Not Found</h1>
+        <p class="lead">The car you are trying to book is not available. Please select another car.</p>
+        <a asp-controller="Guest" asp-action="Cars" class="btn btn-primary btn-lg mt-3">Back to Car List</a>
+    </div>
+}
+else
+{
+    <div class="container my-5">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold">@ViewData["Title"]</h1>
+            <p class="text-muted">You're just a few steps away from hitting the road.</p>
         </div>
-        <ul class="sidebar-nav">
-        <li>
-        <a href="#">
-        <i class="fas fa-tachometer-alt"></i>
-        <span>Dashboard</span>
-        </a>
-        </li>
-        <li>
-        <a href="#" class="active">
-        <i class="fas fa-calendar-check"></i>
-        <span>Booking Management</span>
-        </a>
-        </li>
-        <li>
-        <a href="#">
-        <i class="fas fa-users"></i>
-        <span>Customers</span>
-        </a>
-        </li>
-        <li>
-        <a href="#">
-        <i class="fas fa-bed"></i>
-        <span>Rooms</span>
-        </a>
-        </li>
-        <li>
-        <a href="#">
-        <i class="fas fa-chart-bar"></i>
-        <span>Reports</span>
-        </a>
-        </li>
-        <li>
-        <a href="#">
-        <i class="fas fa-cog"></i>
-        <span>Settings</span>
-        </a>
-        </li>
-        <li>
-        <a href="#">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Logout</span>
-        </a>
-        </li>
-        </ul>
-        </div>
-        *@
-        <!-- Content -->
-        <div id="content">
-            <!-- Top Navbar -->
-            <nav class="navbar">
-                <div class="container-fluid">
-                    <button id="sidebarToggle" class="btn btn-sm btn-primary">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="d-flex align-items-center">
-                        <div class="dropdown">
-                            <a class="dropdown-toggle d-flex align-items-center" href="#" role="button"
-                               id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <div class="avatar-sm me-2">
-                                    <div class="bg-primary rounded-circle text-white p-2 d-flex
-                                                align-items-center justify-content-center">
-                                        <i class="fas fa-user"></i>
-                                    </div>
+
+        <div class="row g-4 g-lg-5">
+            <!-- CAR DETAILS COLUMN -->
+            <div class="col-lg-5">
+                <div class="booking-card sticky-top" style="top: 20px;">
+                    <div class="card-header"><h4 class="mb-0">Your Selected Ride</h4></div>
+                    <img src="@(string.IsNullOrEmpty(car.ImageUrl) ? "/images/default-car.png" : car.ImageUrl)" class="card-img-top">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="card-title fw-bolder mb-0">@car.Brand @car.Model</h3>
+                            @if (car.Rating.HasValue)
+                            {
+                                <div class="star-rating">
+                                    @for (int i = 0; i < car.Rating.Value; i++)
+                                    {
+                                        <i class="bi bi-star-fill"></i>
+                                    }
+                                    @for (int i = car.Rating.Value; i < 5; i++)
+                                    {
+                                        <i class="bi bi-star"></i>
+                                    }
                                 </div>
-                                <span class="d-none d-md-inline">Admin User</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                            </ul>
+                            }
                         </div>
+                        <h6 class="card-subtitle mb-3 text-muted">@car.Year Model</h6>
                     </div>
-                </div>
-            </nav>
-
-            <!-- Main Content -->
-            <div class="container-fluid">
-                <h1 class="page-title">Booking Management</h1>
-
-                <!-- Statistics Cards -->
-                <div class="row" id="statsContainer">
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stat-card primary h-100">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                            Total Bookings
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            <span class="loading-spinner text-primary me-2"></span>
-                                            Loading...
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-calendar-check fa-2x text-primary"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stat-card success h-100">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Confirmed
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            <span class="loading-spinner text-success me-2"></span>
-                                            Loading...
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stat-card warning h-100">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                            Pending
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            <span class="loading-spinner text-warning me-2"></span>
-                                            Loading...
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-clock fa-2x text-warning"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stat-card danger h-100">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                            Cancelled
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            <span class="loading-spinner text-danger me-2"></span>
-                                            Loading...
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-times-circle fa-2x text-danger"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filter Section -->
-                <div class="filter-section">
-                    <div class="row">
-                        <div class="col-md-3 mb-2">
-                            <label class="form-label">Date Range</label>
-                            <select class="form-select" id="dateFilter">
-                                <option value="7">Last 7 days</option>
-                                <option value="30">Last 30 days</option>
-                                <option value="90">Last 3 months</option>
-                                <option value="0">Custom range</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="statusFilter">
-                                <option value="">All Statuses</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="pending">Pending</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <label class="form-label">Room Type</label>
-                            <select class="form-select" id="roomTypeFilter">
-                                <option value="">All Types</option>
-                                <option value="single">Single</option>
-                                <option value="double">Double</option>
-                                <option value="suite">Suite</option>
-                                <option value="deluxe">Deluxe</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-2 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" id="applyFilters">
-                                <i class="fas fa-filter me-2"></i>Apply Filters
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bookings Table -->
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Recent Bookings</span>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2" id="refreshData">
-                                <i class="fas fa-sync-alt me-1"></i> Refresh
-                            </button>
-                            <button class="btn btn-sm btn-primary">
-                                <i class="fas fa-download me-1"></i> Export
-                            </button>
-                        </div>
-                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-tag-fill"></i>Price / day</span><strong id="pricePerDay" data-base-price="@car.RentalPricePerDay.ToString("F2")">$@car.RentalPricePerDay.ToString("F2")</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-gear-fill"></i>Transmission</span><strong>@car.Transmission</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-fuel-pump-fill"></i>Fuel</span><strong>@car.FuelType</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-people-fill"></i>Seats</span><strong>@car.NumberOfSeats</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-snow"></i>Air Conditioned</span><strong>@(car.IsAirConditioned ? "Yes" : "No")</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-speedometer2"></i>Mileage</span><strong>@car.Mileage km/l</strong></li>
+                    </ul>
                     <div class="card-body">
-                        <div id="tableLoading" class="text-center py-4">
-                            <div class="loading-spinner text-primary mb-2"></div>
-                            <p>Loading booking data...</p>
-                        </div>
-                        <div id="emptyState" class="empty-state d-none">
-                            <i class="fas fa-calendar-times"></i>
-                            <h4>No Bookings Found</h4>
-                            <p>There are no bookings matching your current filters.</p>
-                        </div>
-                        <div class="table-responsive d-none" id="tableContainer">
-                            <table class="table table-hover" id="bookingsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Booking ID</th>
-                                        <th>Customer</th>
-                                        <th>Room Type</th>
-                                        <th>Check-In</th>
-                                        <th>Check-Out</th>
-                                        <th>Guests</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Data will be populated dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <nav aria-label="Page navigation" class="d-none" id="paginationContainer">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
+                        <a asp-controller="Guest" asp-action="Cars" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-left-circle"></i> Change Car</a>
                     </div>
                 </div>
             </div>
+
+            <!-- BOOKING FORM COLUMN -->
+            <div class="col-lg-7">
+                <form asp-action="Booking" method="post" class="p-4 bg-white border rounded">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="CarID" id="CarID" value="@car.CarId" />
+                    <input type="hidden" asp-for="TotalPrice" id="totalPriceInput" />
+
+                    <h5 class="form-section-heading">Rental Dates</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label asp-for="PickupDate" class="form-label fw-bold"></label><input asp-for="PickupDate" class="form-control" id="pickupDate" type="date" /></div>
+                        <div class="col-md-6 mb-3"><label asp-for="ReturnDate" class="form-label fw-bold"></label><input asp-for="ReturnDate" class="form-control" id="returnDate" type="date" /></div>
+                    </div>
+                    <div id="availability-message" class="alert d-none"></div>
+
+                    <h5 class="form-section-heading">Optional Add-ons</h5>
+                    <div class="mb-3">
+                        <label asp-for="InsuranceID" class="form-label">Insurance</label>
+                        <select asp-for="InsuranceID" class="form-select" id="insuranceSelect">
+                            <option value="">None</option>
+                            @foreach (var insurance in (List<Insurance>)ViewBag.Insurances)
+                            {
+                                <option value="@insurance.InsuranceID" data-percentage="@insurance.CoveragePercentage" data-description="@insurance.Description">@insurance.Name (+@insurance.CoveragePercentage%)</option>
+                            }
+                        </select>
+                        <div id="insuranceDescription" class="small"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="DriverID" class="form-label">Driver</label>
+                        <select asp-for="DriverID" class="form-select" id="driverSelect">
+                            <option value="">I will drive myself</option>
+                            @foreach (var driver in (List<Driver>)ViewBag.Drivers)
+                            {
+                                <option value="@driver.DriverID" data-fee-per-day="@driver.FeePerDay?.ToString("F2")" data-name="@driver.FullName" data-photo="@(string.IsNullOrEmpty(driver.PhotoUrl) ? "/images/default-user.png" : driver.PhotoUrl)">@driver.FullName (+ $@driver.FeePerDay?.ToString("F2") per day)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <h5 class="form-section-heading">Your Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="guestFullName" class="form-label">Full Name</label><input type="text" name="guestFullName" class="form-control" required /></div>
+                        <div class="col-md-6 mb-3"><label for="guestPhoneNumber" class="form-label">Phone Number</label><input type="tel" name="guestPhoneNumber" class="form-control" required /></div>
+                    </div>
+                    <div class="mb-3"><label for="guestEmail" class="form-label">Email Address</label><input type="email" name="guestEmail" class="form-control" required /></div>
+
+                    <h5 class="form-section-heading">License Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label asp-for="DriverLicenseNumber" class="form-label"></label><input asp-for="DriverLicenseNumber" class="form-control" required /></div>
+                        <div class="col-md-6 mb-3"><label asp-for="NIC" class="form-label"></label><input asp-for="NIC" class="form-control" required /></div>
+                        <div class="col-md-6 mb-3"><label asp-for="LicenseExpiryDate" class="form-label"></label><input asp-for="LicenseExpiryDate" type="date" class="form-control" id="licenseExpiryDate" required /><div class="text-danger small mt-1" id="license-expiry-error" style="display:none;">License must be valid after the return date.</div></div>
+                    </div>
+
+                    <div class="alert alert-success mt-4">
+                        <h5 class="alert-heading">Total Price</h5>
+                        <div class="price-display" id="totalPriceDisplay">$0.00</div>
+                        <div id="priceBreakdown" class="small mt-2 border-top pt-2"></div>
+                    </div>
+                    <button type="submit" id="confirmBookingBtn" class="btn btn-warning btn-lg w-100 fw-bold"><i class="bi bi-credit-card-fill"></i> Proceed to Payment</button>
+                </form>
+            </div>
         </div>
     </div>
+}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        // Toggle sidebar
-        document.getElementById('sidebarToggle').addEventListener('click', function () {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
+        $(document).ready(function () {
+            // This is a safety check to ensure the script only runs on this specific page.
+            if ($('#CarID').length > 0) {
 
-        // Simulate loading data from database
-        document.addEventListener('DOMContentLoaded', function () {
-            // This would be replaced with actual API calls in a real application
-            loadBookingData();
-        });
+                const carId = $('#CarID').val();
+                const pickupDateEl = $('#pickupDate');
+                const returnDateEl = $('#returnDate');
+                const licenseExpiryDateEl = $('#licenseExpiryDate');
+                const availabilityMessageEl = $('#availability-message');
+                const submitButton = $('#confirmBookingBtn');
+                const insuranceSelectEl = $('#insuranceSelect');
+                const driverSelectEl = $('#driverSelect');
 
-        // Refresh data button
-        document.getElementById('refreshData').addEventListener('click', function () {
-            loadBookingData();
-        });
-
-        // Apply filters button
-        document.getElementById('applyFilters').addEventListener('click', function () {
-            loadBookingData();
-        });
-
-        // Function to load booking data (would be API calls in real app)
-        function loadBookingData() {
-            // Show loading states
-            document.querySelectorAll('#statsContainer .loading-spinner').forEach(el => {
-                el.parentElement.innerHTML = '<span class="loading-spinner me-2"></span>Loading...';
-            });
-
-            document.getElementById('tableLoading').classList.remove('d-none');
-            document.getElementById('tableContainer').classList.add('d-none');
-            document.getElementById('emptyState').classList.add('d-none');
-            document.getElementById('paginationContainer').classList.add('d-none');
-
-            // Get filter values
-            const dateFilter = document.getElementById('dateFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            const roomTypeFilter = document.getElementById('roomTypeFilter').value;
-
-            // Simulate API delay
-            setTimeout(() => {
-                // This would be actual API call to your backend in a real application
-                // For example: fetch(`/api/bookings?dateRange=${dateFilter}&status=${statusFilter}&roomType=${roomTypeFilter}`)
-
-                // Simulated response from server
-                const response = {
-                    success: true,
-                    stats: {
-                        total: 142,
-                        confirmed: 98,
-                        pending: 24,
-                        cancelled: 20
-                    },
-                    //     bookings: [
-                    //         {
-                    //             id: '#BK001',
-                    //             customer: 'John Smith',
-                    //             roomType: 'Deluxe Suite',
-                    //             checkIn: '15/09/2023',
-                    //             checkOut: '20/09/2023',
-                    //             guests: 2,
-                    //             amount: '$1,200',
-                    //             status: 'confirmed'
-                    //         },
-                    //         {
-                    //             id: '#BK002',
-                    //             customer: 'Emma Johnson',
-                    //             roomType: 'Single Room',
-                    //             checkIn: '16/09/2023',
-                    //             checkOut: '18/09/2023',
-                    //             guests: 1,
-                    //             amount: '$350',
-                    //             status: 'pending'
-                    //         },
-                    //         {
-                    //             id: '#BK003',
-                    //             customer: 'Michael Brown',
-                    //             roomType: 'Double Room',
-                    //             checkIn: '18/09/2023',
-                    //             checkOut: '22/09/2023',
-                    //             guests: 2,
-                    //             amount: '$800',
-                    //             status: 'confirmed'
-                    //         },
-                    //         {
-                    //             id: '#BK004',
-                    //             customer: 'Sarah Williams',
-                    //             roomType: 'Suite',
-                    //             checkIn: '20/09/2023',
-                    //             checkOut: '25/09/2023',
-                    //             guests: 3,
-                    //             amount: '$1,500',
-                    //             status: 'cancelled'
-                    //         },
-                    //         {
-                    //             id: '#BK005',
-                    //             customer: 'Robert Davis',
-                    //             roomType: 'Deluxe Suite',
-                    //             checkIn: '22/09/2023',
-                    //             checkOut: '27/09/2023',
-                    //             guests: 2,
-                    //             amount: '$1,800',
-                    //             status: 'confirmed'
-                    //         }
-                    //     ]
-                    // };
-
-                    // Handle server response
-                    if(response.success) {
-                updateStats(response.stats);
-                updateBookingsTable(response.bookings);
-            } else {
-                showErrorState();
-            }
-        }, 1500); // Simulate network delay
+                // --- MAIN HANDLER FOR ANY DATE CHANGE ---
+                async function onDateChange() {
+                    const isAvailable = await checkCarAvailability();
+                    validateLicenseExpiry();
+                    calculateTotalPrice();
                 }
 
-        // Update statistics cards
-        function updateStats(stats) {
-            document.querySelector('#statsContainer .stat-card.primary .h5').innerHTML = stats.total;
-            document.querySelector('#statsContainer .stat-card.success .h5').innerHTML = stats.confirmed;
-            document.querySelector('#statsContainer .stat-card.warning .h5').innerHTML = stats.pending;
-            document.querySelector('#statsContainer .stat-card.danger .h5').innerHTML = stats.cancelled;
-        }
+                // --- API CALL TO CHECK AVAILABILITY ---
+                async function checkCarAvailability() {
+                    const pickupDate = pickupDateEl.val();
+                    const returnDate = returnDateEl.val();
 
-        // Update bookings table
-        function updateBookingsTable(bookings) {
-            const tableBody = document.querySelector('#bookingsTable tbody');
-            tableBody.innerHTML = '';
+                    if (!pickupDate || !returnDate || new Date(returnDate) <= new Date(pickupDate)) {
+                        availabilityMessageEl.addClass('d-none');
+                        submitButton.prop('disabled', false);
+                        return true;
+                    }
+                    try {
+                        const response = await fetch(`/Car/CheckAvailability?carId=${carId}&pickupDate=${pickupDate}&returnDate=${returnDate}`);
+                        const data = await response.json();
+                        if (data.isAvailable) {
+                            availabilityMessageEl.removeClass('alert-danger d-none').addClass('alert-success').html('<strong>Available!</strong> This car is ready for your selected dates.').slideDown().delay(2500).slideUp();
+                            submitButton.prop('disabled', false);
+                            validateLicenseExpiry(); // Re-validate license after car becomes available
+                            return true;
+                        } else {
+                            availabilityMessageEl.removeClass('alert-success d-none').addClass('alert-danger').html('<strong>Not Available!</strong> This car is booked for these dates.').slideDown();
+                            submitButton.prop('disabled', true);
+                            return false;
+                        }
+                    } catch (error) {
+                        availabilityMessageEl.removeClass('alert-success d-none').addClass('alert-danger').text('Error checking availability.').slideDown();
+                        submitButton.prop('disabled', true);
+                        return false;
+                    }
+                }
 
-            if (bookings.length === 0) {
-                document.getElementById('tableLoading').classList.add('d-none');
-                document.getElementById('emptyState').classList.remove('d-none');
-                return;
+                // --- UI UPDATE FUNCTIONS ---
+                function updateInsuranceDetails() {
+                    const selected = insuranceSelectEl.find('option:selected');
+                    const container = $('#insuranceDescription');
+                    const description = selected.data('description');
+                    if (selected.val() && description) { container.text(description).slideDown(); } else { container.slideUp(); }
+                }
+
+                
+
+                // --- VALIDATION FUNCTION ---
+                function validateLicenseExpiry() {
+                    const errorDiv = $('#license-expiry-error');
+                    if (returnDateEl.val() && licenseExpiryDateEl.val()) {
+                        if (new Date(licenseExpiryDateEl.val()) <= new Date(returnDateEl.val())) {
+                            errorDiv.slideDown();
+                            submitButton.prop('disabled', true);
+                        } else {
+                            errorDiv.slideUp();
+                            // Only enable the button if it wasn't already disabled by the availability check
+                            if (!submitButton.prop('disabled')) {
+                                submitButton.prop('disabled', false);
+                            }
+                        }
+                    }
+                }
+
+                // --- PRICE CALCULATION FUNCTION ---
+                function calculateTotalPrice() {
+                    const basePricePerDay = parseFloat($('#pricePerDay').data('base-price'));
+                    const pickupDate = new Date(pickupDateEl.val());
+                    const returnDate = new Date(returnDateEl.val());
+                    let numberOfDays = 1;
+                    if (returnDate > pickupDate) {
+                        numberOfDays = Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24));
+                    }
+
+                    let rentalTotal = numberOfDays * basePricePerDay;
+                    let insuranceCost = 0;
+                    if (insuranceSelectEl.val()) {
+                        insuranceCost = rentalTotal * (parseFloat(insuranceSelectEl.find('option:selected').data('percentage')) / 100);
+                    }
+                    let driverFee = 0;
+                    if (driverSelectEl.val()) {
+                        driverFee = numberOfDays * parseFloat(driverSelectEl.find('option:selected').data('fee-per-day'));
+                    }
+
+                    let finalTotal = rentalTotal + insuranceCost + driverFee;
+
+                    $('#totalPriceDisplay').text('$' + finalTotal.toFixed(2));
+                    $('#totalPriceInput').val(finalTotal.toFixed(2));
+
+                    let breakdownHtml = `<p class="mb-0">Rental (${numberOfDays} days): $${rentalTotal.toFixed(2)}</p>`;
+                    if (insuranceCost > 0) breakdownHtml += `<p class="mb-0">Insurance: + $${insuranceCost.toFixed(2)}</p>`;
+                    if (driverFee > 0) breakdownHtml += `<p class="mb-0">Driver Fee: + $${driverFee.toFixed(2)}</p>`;
+                    $('#priceBreakdown').html(breakdownHtml);
+                }
+
+                // --- EVENT LISTENERS ---
+                pickupDateEl.on('change', onDateChange);
+                returnDateEl.on('change', onDateChange);
+                licenseExpiryDateEl.on('change', validateLicenseExpiry);
+                insuranceSelectEl.on('change', () => { updateInsuranceDetails(); calculateTotalPrice(); });
+                driverSelectEl.on('change', () => { updateDriverDetails(); calculateTotalPrice(); });
+
+                // --- INITIAL CALLS ON PAGE LOAD ---
+                onDateChange();
+                updateInsuranceDetails();
+                updateDriverDetails();
             }
-
-            bookings.forEach(booking => {
-                const statusClass = {
-                    'confirmed': 'bg-success',
-                    'pending': 'bg-warning',
-                    'cancelled': 'bg-danger',
-                    'completed': 'bg-info'
-                }[booking.status] || 'bg-secondary';
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                            <td>${booking.id}</td>
-                            <td>${booking.customer}</td>
-                            <td>${booking.roomType}</td>
-                            <td>${booking.checkIn}</td>
-                            <td>${booking.checkOut}</td>
-                            <td>${booking.guests}</td>
-                            <td>${booking.amount}</td>
-                            <td><span class="badge badge-status ${statusClass}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-action btn-info"><i class="fas fa-eye"></i></button>
-                                <button class="btn btn-sm btn-action btn-warning"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-action btn-danger"><i class="fas fa-trash"></i></button>
-                            </td>
-                        `;
-                tableBody.appendChild(row);
-            });
-
-            // Show table and pagination
-            document.getElementById('tableLoading').classList.add('d-none');
-            document.getElementById('tableContainer').classList.remove('d-none');
-            document.getElementById('paginationContainer').classList.remove('d-none');
-        }
-
-        // Show error state
-        function showErrorState() {
-            document.getElementById('tableLoading').classList.add('d-none');
-            const emptyState = document.getElementById('emptyState');
-            emptyState.classList.remove('d-none');
-            emptyState.innerHTML = `
-                        <i class="fas fa-exclamation-triangle text-danger"></i>
-                        <h4>Error Loading Data</h4>
-                        <p>There was a problem loading the booking data. Please try again.</p>
-                        <button class="btn btn-primary mt-2" onclick="loadBookingData()">
-                            <i class="fas fa-sync-alt me-1"></i> Retry
-                        </button>
-                    `;
-        }
+        });
     </script>
-</body>
-</html>
+}

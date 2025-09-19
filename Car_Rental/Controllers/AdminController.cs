@@ -4,7 +4,11 @@ using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System; // DateTime-க்கு தேவை
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Car_Rental.Controllers
 {
@@ -20,42 +24,130 @@ namespace Car_Rental.Controllers
             _passwordHasher = passwordHasher;
         }
 
-        [HttpGet]
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var adminUser = _context.Users.Find(int.Parse(adminId));
-
-            if (adminUser == null)
+            try
             {
-                return RedirectToAction("Logout", "User");
+                var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(adminId)) return RedirectToAction("Logout", "User");
 
+                var adminUser = await _context.Users.FindAsync(int.Parse(adminId));
+                if (adminUser == null) return RedirectToAction("Logout", "User");
+
+                // --- புள்ளிவிவரங்களைக் கணக்கிடுதல் ---
+
+                // 1. Most Booked Vehicle
+                var mostBookedCarInfo = await _context.Bookings
+                    .GroupBy(b => b.CarID)
+                    .Select(g => new { CarId = g.Key, Count = g.Count() })
+                    .OrderByDescending(x => x.Count)
+                    .FirstOrDefaultAsync();
+
+                string mostBookedVehicle = "No Bookings Yet";
+                if (mostBookedCarInfo != null)
+                {
+                    var car = await _context.Cars.FindAsync(mostBookedCarInfo.CarId);
+                    mostBookedVehicle = car != null ? $"{car.Brand} {car.Model}" : "Vehicle Not Found";
+                }
+
+                // 2. Most Rated Vehicle
+                string mostRatedVehicle = "No Reviews Yet";
+                if (await _context.Reviews.AnyAsync())
+                {
+                    var mostRatedCarInfo = await _context.Reviews
+                        .GroupBy(r => r.CarId)
+                        .Select(g => new { CarId = g.Key, AverageRating = g.Average(r => r.Rating) })
+                        .OrderByDescending(x => x.AverageRating)
+                        .FirstOrDefaultAsync();
+
+                    if (mostRatedCarInfo != null)
+                    {
+                        var car = await _context.Cars.FindAsync(mostRatedCarInfo.CarId);
+                        mostRatedVehicle = car != null ? $"{car.Brand} {car.Model}" : "Vehicle Not Found";
+                    }
+                }
+
+                // 3. INVOICE TABLE-ஐப் பயன்படுத்தி வருமானக் கணக்கீடுகள்
+                var totalRevenue = await _context.Invoices.Where(i => i.IsPaid).SumAsync(i => i.TotalAmount);
+                var today = DateTime.Today;
+                var startOfMonth = new DateTime(today.Year, today.Month, 1);
+                var currentMonthRevenue = await _context.Invoices
+                    .Where(i => i.IsPaid && i.InvoiceDate >= startOfMonth)
+                    .SumAsync(i => i.TotalAmount);
+
+                // 4. நான்கு கார் நிலைகளுக்கும் தனித்தனியாக கணக்கீடு
+                var availableCarsCount = await _context.Cars.CountAsync(c => c.Status == CarStatus.Available);
+                var bookedCarsCount = await _context.Cars.CountAsync(c => c.Status == CarStatus.Booked);
+                var maintenanceCarsCount = await _context.Cars.CountAsync(c => c.Status == CarStatus.UnderMaintenance);
+                var notAvailableCarsCount = await _context.Cars.CountAsync(c => c.Status == CarStatus.NotAvailable);
+
+                // --- Model-ஐ உருவாக்குதல் ---
+                var model = new
+                {
+                    TotalCars = await _context.Cars.CountAsync(),
+                    TotalBookings = await _context.Bookings.CountAsync(),
+                    ActiveCustomers = await _context.Users.CountAsync(u => u.Role == "Customer"),
+                    MustChangePassword = adminUser.MustChangePassword,
+                    MostBookedVehicle = mostBookedVehicle,
+                    MostRatedVehicle = mostRatedVehicle,
+
+                    // வருமானப் புள்ளிவிவரங்கள்
+                    TotalRevenue = totalRevenue,
+                    CurrentMonthRevenue = currentMonthRevenue,
+
+                    // நான்கு கார் நிலைகள்
+                    AvailableCars = availableCarsCount,
+                    BookedCars = bookedCarsCount,
+                    MaintenanceCars = maintenanceCarsCount,
+                    NotAvailableCars = notAvailableCarsCount
+                };
+
+                return View(model);
             }
-
-            var allCars = _context.Cars.ToList();
-            var allBookings = _context.Bookings.ToList();
-            var allUsers = _context.Users.ToList();
-
-            var model = new
+            catch (Exception)
             {
-                TotalCars = allCars.Count,
-                AvailableCars = allCars.Count(c => c.Status == CarStatus.Available),
-                TotalBookings = allBookings.Count,
-                ActiveCustomers = allUsers.Count(u => u.Role == "Customer"),
-                MustChangePassword = adminUser.MustChangePassword
-            };
-
-            return View(model);
+                return View("Error"); // பிழை ஏற்பட்டால் Error பக்கத்திற்கு அனுப்பவும்
+            }
         }
 
-        // =================================================================
-        //      PUTHIYA ACTION (VIEWMODEL ILLAMAL)
-        // =================================================================
+        // === API Endpoints for Charts ===
+
+        [HttpGet]
+        public async Task<JsonResult> GetRevenueTrends()
+        {
+            var revenueData = await _context.Invoices
+                .Where(i => i.IsPaid && i.InvoiceDate > DateTime.Now.AddMonths(-12))
+                .GroupBy(i => new { Year = i.InvoiceDate.Year, Month = i.InvoiceDate.Month })
+                .Select(g => new { Date = new DateTime(g.Key.Year, g.Key.Month, 1), Total = g.Sum(i => i.TotalAmount) })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var labels = revenueData.Select(r => r.Date.ToString("MMM yy")).ToArray();
+            var data = revenueData.Select(r => r.Total).ToArray();
+
+            return Json(new { labels, data });
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetBookingTrends()
+        {
+            var bookingsData = await _context.Bookings
+                .Where(b => b.BookingDate > DateTime.Now.AddMonths(-12))
+                .GroupBy(b => new { Year = b.BookingDate.Year, Month = b.BookingDate.Month })
+                .Select(g => new { Date = new DateTime(g.Key.Year, g.Key.Month, 1), Count = g.Count() })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var labels = bookingsData.Select(b => b.Date.ToString("MMM yy")).ToArray();
+            var data = bookingsData.Select(b => b.Count).ToArray();
+
+            return Json(new { labels, data });
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdatePassword(string newPassword, string confirmPassword)
+        public async Task<IActionResult> UpdatePassword(string newPassword, string confirmPassword)
         {
-            // Basic validation
             if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 6)
             {
                 return Json(new { success = false, message = "Password must be at least 6 characters long." });
@@ -66,30 +158,20 @@ namespace Car_Rental.Controllers
                 return Json(new { success = false, message = "The new password and confirmation password do not match." });
             }
 
-            // Get the current user's ID from their claims
             var adminIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(adminIdString))
             {
                 return Json(new { success = false, message = "Authentication error. User ID not found." });
             }
 
-            var adminUser = _context.Users.Find(int.Parse(adminIdString));
-
+            var adminUser = await _context.Users.FindAsync(int.Parse(adminIdString));
             if (adminUser != null)
             {
-                // ==============================================================
-                //                      THE FIX IS HERE
-                // ==============================================================
-                // Hash the new password before saving it to the database.
                 adminUser.Password = _passwordHasher.HashPassword(adminUser, newPassword);
-                // ==============================================================
-
-                // Set the flag to false since the password has now been changed
                 adminUser.MustChangePassword = false;
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync(); // SaveChangesAsync ஆக மாற்றப்பட்டது
 
-                // Let the client know the update was successful
                 return Json(new { success = true, message = "Password updated successfully!" });
             }
 

@@ -46,17 +46,26 @@ namespace Car_Rental.Models.Entities
         [Range(0, 100, ErrorMessage = "Percentage must be between 0 and 100.")]
         public decimal? OfferPercentage { get; set; }
 
-        // 🔹 Optional Discount Amount (like 5000)
         [Range(0, double.MaxValue, ErrorMessage = "Amount must be positive.")]
         public decimal? OfferAmount { get; set; }
 
         [Range(1, 5)]
         public int? Rating { get; set; }
 
+        // ✅ New Fields
+        [Range(1, 100, ErrorMessage = "Seats must be between 1 and 100.")]
+        public int NumberOfSeats { get; set; }
+
+        [Required]
+        public bool IsAirConditioned { get; set; }   // true = AC, false = Non-AC
+
+        [Range(0, 100, ErrorMessage = "Mileage must be a positive number.")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Mileage { get; set; }   // km per liter
+
         // Navigation
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
-        public ICollection<DamageReport> DamageReports { get; set; } = new List<DamageReport>();
 
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -68,6 +77,5 @@ namespace Car_Rental.Models.Entities
                     new[] { nameof(OfferPercentage), nameof(OfferAmount) });
             }
         }
-
     }
 }

@@ -1,0 +1,359 @@
+﻿@model IEnumerable<Car_Rental.Models.Entities.Car>
+
+@{
+    ViewData["Title"] = "Our Fleet";
+    Layout = "_UserLayout";
+    bool isFiltered = ViewBag.IsFiltered == true;
+}
+
+<!-- ============================================= -->
+<!--          PAGE SPECIFIC CSS STYLES             -->
+<!-- ============================================= -->
+@section Styles {
+    <style>
+        .filter-form-container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .card-hover-simple {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .card-hover-simple:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 15px 25px rgba(0,0,0,0.15) !important;
+            }
+
+        .card-img-wrapper {
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-img-top {
+            transition: transform 0.4s ease;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-hover-simple:hover .card-img-top {
+            transform: scale(1.08);
+        }
+
+        .available-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(25, 135, 84, 0.9);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 50px;
+            z-index: 5;
+        }
+
+        .status-message-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 1rem;
+            padding: 3rem;
+            margin-top: 2rem;
+        }
+
+        .star-rating .bi-star-fill {
+            color: #ffc107;
+        }
+    </style>
+}
+
+<!-- ============================================= -->
+<!--                  HTML BODY                      -->
+<!-- ============================================= -->
+<div class="container my-5 pt-5">
+
+    <!-- Dynamic Title -->
+    <div class="text-center mb-4">
+        @if (isFiltered)
+        {
+            <h1 class="fw-bold">Available Cars for Your Dates</h1>
+            <p class="text-muted">The vehicles below are available for booking from <strong>@ViewBag.PickupDate.ToShortDateString()</strong> to <strong>@ViewBag.ReturnDate.ToShortDateString()</strong>.</p>
+        }
+        else
+        {
+            <h1 class="fw-bold">@ViewData["Title"]</h1>
+            <p class="text-muted">Browse all our cars or filter by your travel dates to find the perfect match.</p>
+        }
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="filter-form-container my-4" id="filter-form">
+        <form asp-controller="Guest" asp-action="Cars" method="get">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-5 col-md-6">
+                    <label for="pickupDate" class="form-label fw-bold">Pick-up Date</label>
+                    <input type="date" id="pickupDate" name="pickupDate" class="form-control form-control-lg" value="@(ViewBag.PickupDate?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-lg-5 col-md-6">
+                    <label for="returnDate" class="form-label fw-bold">Return Date</label>
+                    <input type="date" id="returnDate" name="returnDate" class="form-control form-control-lg" value="@(ViewBag.ReturnDate?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-lg-2 col-md-12">
+                    <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold">Find Available</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Car Listing -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var car in Model)
+            {
+                <div class="col-12 col-md-6 col-lg-4 d-flex align-items-stretch">
+                    <div class="card h-100 border-0 shadow-sm card-hover-simple text-center">
+                        <div class="card-img-wrapper">
+                            @if (isFiltered)
+                            {
+                                <div class="available-badge"><i class="bi bi-check-circle-fill"></i> Available</div>
+                            }
+                            <img src="@(string.IsNullOrEmpty(car.ImageUrl) ? "/images/default-car.png" : car.ImageUrl)" class="card-img-top" alt="@car.Brand @car.Model" />
+                        </div>
+                        <div class="card-body d-flex flex-column p-4">
+                            <h5 class="card-title fw-bolder">@car.Brand @car.Model</h5>
+                            <small class="text-muted mb-3">@car.Year Model</small>
+                            <div class="mt-auto d-grid gap-2">
+                                <button type="button" class="btn btn-outline-dark" data-car-id="@car.CarId" data-bs-toggle="modal" data-bs-target="#carDetailsModal">View Details</button>
+
+                                @if (isFiltered)
+                                {
+                                    <!-- If dates ARE selected, the Book Now button is a direct link -->
+                                    <a href="/Booking/Booking/@car.CarId?pickupDate=@(ViewBag.PickupDate?.ToString("yyyy-MM-dd"))&returnDate=@(ViewBag.ReturnDate?.ToString("yyyy-MM-dd"))"
+                                       class="btn btn-warning fw-bold">Book Now</a>
+                                }
+                                else
+                                {
+                                    <!-- If dates are NOT selected, show the "Check Availability" button -->
+                                    <button type="button" class="btn btn-warning fw-bold check-availability-btn"
+                                            title="Please select dates to book">
+                                        Check Availability
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center status-message-box">
+            <i class="bi bi-calendar-x text-danger display-4"></i>
+            <h3 class="mt-3 fw-bold">No Cars Found</h3>
+            <p class="fs-5 text-muted mb-0">We're sorry, but no cars match your search criteria. Please try different dates.</p>
+        </div>
+    }
+</div>
+
+<!-- Car Details Modal -->
+<div class="modal fade" id="carDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="carDetailsModalLabel">Car Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="carDetailsContent">
+                <!-- Content is loaded by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // This is the function we are replacing
+            initializeCarModal();
+
+            initializeDatePickers();
+            initializeCheckAvailabilityButtons();
+        });
+
+        // ==============================================================================
+        //          REPLACE YOUR OLD initializeCarModal FUNCTION WITH THIS ONE
+        // ==============================================================================
+        function initializeCarModal() {
+            const carDetailsModal = document.getElementById('carDetailsModal');
+            if (!carDetailsModal) return;
+            const carDetailsContent = document.getElementById('carDetailsContent');
+
+            carDetailsModal.addEventListener('show.bs.modal', async (event) => {
+                const button = event.relatedTarget;
+                const carId = button.getAttribute('data-car-id');
+                carDetailsContent.innerHTML = `<div class="d-flex justify-content-center p-5"><div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+
+                try {
+                    const response = await fetch(`/Car/GetCarDetails/${carId}`);
+                    if (!response.ok) throw new Error('Failed to fetch car details.');
+
+                    const car = await response.json();
+
+                    // --- Helper function to generate star ratings ---
+                    function generateStars(rating) {
+                        if (!rating || rating === 0) return '<small class="text-muted fst-italic">No rating yet</small>';
+                        let stars = '';
+                        for (let i = 1; i <= 5; i++) {
+                            stars += `<i class="bi bi-star${i <= rating ? '-fill' : ''}"></i> `;
+                        }
+                        return `<div class="star-rating">${stars}</div>`;
+                    }
+
+                    // --- Logic to calculate price and create offer text ---
+                    let priceHtml;
+                    let offerText = '';
+                    let basePrice = parseFloat(car.rentalPricePerDay);
+
+                    if (car.offerPercentage && car.offerPercentage > 0) {
+                        const discountedPrice = basePrice * (1 - car.offerPercentage / 100);
+                        offerText = `<div class="badge bg-danger fs-6 rounded-pill">${car.offerPercentage}% OFF</div>`;
+                        priceHtml = `
+                            <div>
+                                <del class="text-muted small">$${basePrice.toFixed(2)}</del>
+                                <p class="display-6 fw-bold text-dark mb-0">$${discountedPrice.toFixed(2)}</p>
+                            </div>`;
+                    } else if (car.offerAmount && car.offerAmount > 0) {
+                        const discountedPrice = basePrice - car.offerAmount;
+                        offerText = `<div class="badge bg-danger fs-6 rounded-pill">$${car.offerAmount} OFF</div>`;
+                         priceHtml = `
+                            <div>
+                                <del class="text-muted small">$${basePrice.toFixed(2)}</del>
+                                <p class="display-6 fw-bold text-dark mb-0">$${discountedPrice.toFixed(2)}</p>
+                            </div>`;
+                    } else {
+                        priceHtml = `<p class="display-6 fw-bold text-dark mb-0">$${basePrice.toFixed(2)}</p>`;
+                    }
+
+                    // --- Logic for the "Book Now" button ---
+                    const pickupDate = document.getElementById('pickupDate').value;
+                    const returnDate = document.getElementById('returnDate').value;
+                    let bookingUrl = `/Booking/Booking/${car.carId}`;
+                    if (pickupDate && returnDate) {
+                        bookingUrl += `?pickupDate=${pickupDate}&returnDate=${returnDate}`;
+                    }
+                    const bookNowButtonHtml = (pickupDate && returnDate)
+                        ? `<a href="${bookingUrl}" class="btn btn-warning btn-lg fw-bold">Book Now</a>`
+                        : `<button class="btn btn-warning btn-lg fw-bold check-availability-btn">Check Availability</button>`;
+
+                    // --- FINAL HTML TEMPLATE FOR THE MODAL ---
+                    carDetailsContent.innerHTML = `
+                      <div class="row g-4">
+                        <div class="col-lg-6">
+                          <img src="${car.imageUrl || '/images/default-car.png'}" alt="${car.brand} ${car.model}" class="img-fluid rounded-3 shadow-sm">
+                        </div>
+                        <div class="col-lg-6 d-flex flex-column">
+                          <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h2 class="fw-bolder mb-0">${car.brand} ${car.model}</h2>
+                                ${generateStars(car.rating)}
+                            </div>
+                            <span class="text-muted fw-semibold">${car.year} Model</span>
+                          </div>
+                          <h5 class="mt-4">Key Features</h5>
+                          <ul class="list-group list-group-flush small my-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-people-fill text-secondary me-2"></i> Seats</span> <strong class="text-end">${car.numberOfSeats}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-snow text-secondary me-2"></i> Air Conditioned</span> <strong class="text-end">${car.isAirConditioned ? "Yes" : "No"}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-fuel-pump-fill text-secondary me-2"></i> Fuel Type</span> <strong class="text-end">${car.fuelType}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-gear-fill text-secondary me-2"></i> Transmission</span> <strong class="text-end">${car.transmission}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="bi bi-speedometer2 text-secondary me-2"></i> Mileage</span> <strong class="text-end">${car.mileage} km/l</strong>
+                            </li>
+                          </ul>
+                          <div class="bg-light p-3 rounded-3 mt-auto">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted d-block">Price Per Day</small>
+                                    ${priceHtml}
+                                </div>
+                                ${offerText ? `<div class="ms-3 text-end">${offerText}</div>` : ''}
+                            </div>
+                          </div>
+                          <div class="d-grid gap-2 mt-3">
+                              ${bookNowButtonHtml}
+                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>`;
+
+                    // Re-initialize the scroll-to-top button if it exists inside the modal
+                    initializeCheckAvailabilityButtons();
+
+                } catch (error) {
+                    console.error("Failed to load car details:", error);
+                    carDetailsContent.innerHTML = `<div class="text-center p-5"><p class="text-danger">Failed to load car details. Please try again later.</p></div>`;
+                }
+            });
+        }
+
+
+        // This function handles the "Check Availability" button click
+        function initializeCheckAvailabilityButtons() {
+            document.querySelectorAll('.check-availability-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const filterForm = document.getElementById('filter-form');
+                    if (filterForm) {
+                        // Close the modal if it's open
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('carDetailsModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        filterForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight the form
+                        filterForm.style.transition = 'box-shadow 0.3s ease';
+                        filterForm.style.boxShadow = '0 0 25px rgba(255, 193, 7, 0.7)';
+                        setTimeout(() => { filterForm.style.boxShadow = ''; }, 1500);
+                    }
+                });
+            });
+        }
+
+        // This function sets the min dates for the date pickers
+        function initializeDatePickers() {
+            const pickupDateInput = document.getElementById('pickupDate');
+            const returnDateInput = document.getElementById('returnDate');
+            const today = new Date().toISOString().split('T')[0];
+            pickupDateInput.setAttribute('min', today);
+
+            pickupDateInput.addEventListener('change', () => {
+                const pickupValue = pickupDateInput.value;
+                if (pickupValue) {
+                    let minReturnDate = new Date(pickupValue);
+                    minReturnDate.setDate(minReturnDate.getDate() + 1);
+                    returnDateInput.setAttribute('min', minReturnDate.toISOString().split('T')[0]);
+                    if (returnDateInput.value && returnDateInput.value <= pickupValue) returnDateInput.value = '';
+                } else {
+                    returnDateInput.removeAttribute('min');
+                }
+            });
+        }
+    </script>
+}

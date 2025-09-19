@@ -35,6 +35,9 @@ namespace Car_Rental.Models.Entities
         [Url]
         public string? PhotoUrl { get; set; }
 
+        [Range(0, 50000, ErrorMessage = "Fee per day must be between 0 and 50,000.")]
+        public decimal? FeePerDay { get; set; }
+
         // Navigation
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }

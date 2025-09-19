@@ -3,6 +3,9 @@
 @{
     ViewData["Title"] = "Add New Driver";
 }
+@{
+    Layout = "_AdminLayout"; // Ensure it uses the LoginLayout
+}
 
 <div class="card-body">
     <form asp-action="Add" method="post" enctype="multipart/form-data" novalidate>
@@ -35,6 +38,12 @@
                 <label asp-for="LicenseExpiryDate" class="form-label fw-semibold">Hire Date</label>
                 <input asp-for="LicenseExpiryDate" type="date" class="form-control form-control-lg shadow-sm rounded-3" />
                 <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="FeePerDay" class="form-label fw-bold"></label>
+                <input asp-for="FeePerDay" class="form-control" placeholder="Enter Fee Per Day" type="number" />
+                <span asp-validation-for="FeePerDay" class="text-danger small"></span>
             </div>
 
             <div class="col-md-4">

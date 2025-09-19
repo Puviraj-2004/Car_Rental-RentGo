@@ -136,11 +136,16 @@ namespace Car_Rental.Controllers
                     driverLicenseNumber = d.DriverLicenseNumber,
                     licenseExpiryDate = d.LicenseExpiryDate.ToString("yyyy-MM-dd"),
                     status = d.Status.ToString(),
-                    photoUrl = d.PhotoUrl
+                    photoUrl = d.PhotoUrl,
+                    feePerDay = d.FeePerDay // <-- இந்த வரி புதிதாக சேர்க்கப்பட்டுள்ளது
                 })
                 .FirstOrDefault();
 
-            if (driver == null) return NotFound();
+            if (driver == null)
+            {
+                return NotFound();
+            }
+
             return Json(driver);
         }
         [HttpGet]

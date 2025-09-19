@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Add New Car";
+    Layout = "_AdminLayout";
 }
 
 <div class="container my-5">
@@ -45,6 +46,29 @@
                         <span asp-validation-for="RentalPricePerDay" class="text-danger small"></span>
                     </div>
 
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label fw-bold"></label>
+                        @* Booked விருப்பம் நீக்கப்பட்டுள்ளது *@
+                        <select asp-for="Status" asp-items="@ViewBag.StatusList" class="form-select"></select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="text-primary">Specifications</h5>
+
+                    @* --- ✅ புதிதாக சேர்க்கப்பட்ட புலங்கள் --- *@
+                    <div class="col-md-6">
+                        <label asp-for="NumberOfSeats" class="form-label fw-bold"></label>
+                        <input asp-for="NumberOfSeats" type="number" class="form-control" placeholder="e.g. 5" />
+                        <span asp-validation-for="NumberOfSeats" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Mileage" class="form-label fw-bold"></label>
+                        <input asp-for="Mileage" type="number" step="0.01" class="form-control" placeholder="e.g. 15.5 km/l" />
+                        <span asp-validation-for="Mileage" class="text-danger small"></span>
+                    </div>
+
                     <div class="col-md-4">
                         <label asp-for="FuelType" class="form-label fw-bold"></label>
                         <select asp-for="FuelType" asp-items="Html.GetEnumSelectList<Car_Rental.Enum.FuelType>()" class="form-select"></select>
@@ -57,28 +81,30 @@
                         <span asp-validation-for="Transmission" class="text-danger small"></span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label asp-for="Status" class="form-label fw-bold"></label>
-                        <select asp-for="Status" asp-items="Html.GetEnumSelectList<Car_Rental.Enum.CarStatus>()" class="form-select"></select>
-                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check form-switch form-check-lg">
+                            <input asp-for="IsAirConditioned" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsAirConditioned" class="form-check-label fw-bold"></label>
+                        </div>
                     </div>
 
-                    <!-- 🔹 Offer Fields -->
-                    <div class="col-md-6">
-                        <label asp-for="OfferPercentage" class="form-label fw-bold">Offer Percentage</label>
+                    <hr class="my-4" />
+                    <h5 class="text-primary">Pricing & Offers</h5>
+
+                    <div class="col-md-4">
+                        <label asp-for="OfferPercentage" class="form-label fw-bold">Offer (%)</label>
                         <input asp-for="OfferPercentage" type="number" step="0.01"
-                               class="form-control" id="offerPercent" placeholder="e.g. 10 for 10%" />
+                               class="form-control" id="offerPercent" placeholder="e.g. 10" />
                         <span asp-validation-for="OfferPercentage" class="text-danger small"></span>
                     </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="OfferAmount" class="form-label fw-bold">Offer Amount</label>
+                    <div class="col-md-4">
+                        <label asp-for="OfferAmount" class="form-label fw-bold">Offer Amount ($)</label>
                         <input asp-for="OfferAmount" type="number" step="0.01"
-                               class="form-control" id="offerAmount" placeholder="e.g. 5000" />
+                               class="form-control" id="offerAmount" placeholder="e.g. 50" />
                         <span asp-validation-for="OfferAmount" class="text-danger small"></span>
                     </div>
 
-                    <!-- Car Image -->
                     <div class="col-md-12">
                         <label class="form-label fw-bold">Car Image</label>
                         <input type="file" name="ImageFile" class="form-control" accept="image/*" />
@@ -103,14 +129,16 @@
         const amountInput = document.getElementById("offerAmount");
 
         function toggleOfferInputs() {
-            if (percentInput.value.length > 0) {
+            if (percentInput.value.length > 0 && parseFloat(percentInput.value) > 0) {
                 amountInput.disabled = true;
+                amountInput.value = ''; // Clear the other input
             } else {
                 amountInput.disabled = false;
             }
 
-            if (amountInput.value.length > 0) {
+            if (amountInput.value.length > 0 && parseFloat(amountInput.value) > 0) {
                 percentInput.disabled = true;
+                percentInput.value = ''; // Clear the other input
             } else {
                 percentInput.disabled = false;
             }
@@ -119,7 +147,6 @@
         percentInput.addEventListener("input", toggleOfferInputs);
         amountInput.addEventListener("input", toggleOfferInputs);
 
-        // Initialize when page loads
         toggleOfferInputs();
     </script>
 }

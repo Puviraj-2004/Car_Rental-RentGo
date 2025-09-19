@@ -13,9 +13,6 @@ namespace Car_Rental.Models.Entities
         public int? BookingId { get; set; }
         public Booking? Booking { get; set; }
 
-        public int? DamageReportId { get; set; }
-        public DamageReport? DamageReport { get; set; }
-
         [Required]
         public int UserId { get; set; }
         public User User { get; set; } = null!;

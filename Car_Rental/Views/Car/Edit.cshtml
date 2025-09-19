@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit Car";
+    Layout = "_AdminLayout";
 }
 
 <div class="container my-5">
@@ -13,7 +14,7 @@
 
         <div class="card-body">
             <form asp-action="Edit" method="post" enctype="multipart/form-data" novalidate>
-                @Html.HiddenFor(m => m.CarId) <!-- Keep ID hidden for update -->
+                <input type="hidden" asp-for="CarId" />
 
                 <div class="row g-3">
 
@@ -47,6 +48,27 @@
                         <span asp-validation-for="RentalPricePerDay" class="text-danger small"></span>
                     </div>
 
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label fw-bold"></label>
+                        <select asp-for="Status" asp-items="Html.GetEnumSelectList<Car_Rental.Enum.CarStatus>()" class="form-select"></select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="text-primary">Specifications</h5>
+
+                    <div class="col-md-6">
+                        <label asp-for="NumberOfSeats" class="form-label fw-bold"></label>
+                        <input asp-for="NumberOfSeats" type="number" class="form-control" />
+                        <span asp-validation-for="NumberOfSeats" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Mileage" class="form-label fw-bold"></label>
+                        <input asp-for="Mileage" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="Mileage" class="text-danger small"></span>
+                    </div>
+
                     <div class="col-md-4">
                         <label asp-for="FuelType" class="form-label fw-bold"></label>
                         <select asp-for="FuelType" asp-items="Html.GetEnumSelectList<Car_Rental.Enum.FuelType>()" class="form-select"></select>
@@ -59,28 +81,30 @@
                         <span asp-validation-for="Transmission" class="text-danger small"></span>
                     </div>
 
-                    <div class="col-md-4">
-                        <label asp-for="Status" class="form-label fw-bold"></label>
-                        <select asp-for="Status" asp-items="Html.GetEnumSelectList<Car_Rental.Enum.CarStatus>()" class="form-select"></select>
-                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check form-switch form-check-lg">
+                            <input asp-for="IsAirConditioned" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsAirConditioned" class="form-check-label fw-bold"></label>
+                        </div>
                     </div>
 
-                    <!-- 🔹 Offer Fields -->
-                    <div class="col-md-6">
-                        <label asp-for="OfferPercentage" class="form-label fw-bold">Offer Percentage</label>
+                    <hr class="my-4" />
+                    <h5 class="text-primary">Pricing & Offers</h5>
+
+                    <div class="col-md-4">
+                        <label asp-for="OfferPercentage" class="form-label fw-bold">Offer (%)</label>
                         <input asp-for="OfferPercentage" type="number" step="0.01"
-                               class="form-control" id="offerPercent" placeholder="e.g. 10 for 10%" />
+                               class="form-control" id="offerPercent" />
                         <span asp-validation-for="OfferPercentage" class="text-danger small"></span>
                     </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="OfferAmount" class="form-label fw-bold">Offer Amount</label>
+                    <div class="col-md-4">
+                        <label asp-for="OfferAmount" class="form-label fw-bold">Offer Amount ($)</label>
                         <input asp-for="OfferAmount" type="number" step="0.01"
-                               class="form-control" id="offerAmount" placeholder="e.g. 5000" />
+                               class="form-control" id="offerAmount" />
                         <span asp-validation-for="OfferAmount" class="text-danger small"></span>
                     </div>
 
-                    <!-- Car Image -->
                     <div class="col-md-12">
                         <label class="form-label fw-bold">Car Image Preview</label>
                         <div class="mb-2">
@@ -102,7 +126,7 @@
 
                 <div class="d-flex justify-content-end mt-4">
                     <a asp-action="List" class="btn btn-outline-secondary me-3">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Edit</button>
+                    <button type="submit" class="btn btn-primary">Update Car</button>
                 </div>
             </form>
         </div>
@@ -114,8 +138,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-
-            // ===== Image Preview Logic =====
+            // உங்கள் மற்ற JavaScript குறியீடுகள் சரியாகவே உள்ளன, அவற்றில்లో ఏ మార్పు అవసరం లేదు
             const imageFileInput = document.getElementById('imageFileInput');
             const imagePreview = document.getElementById('imagePreview');
             const noImageText = document.getElementById('noImageText');
@@ -133,18 +156,17 @@
                 }
             });
 
-            // ===== Offer Fields Disable/Enable Logic =====
             const percentInput = document.getElementById("offerPercent");
             const amountInput = document.getElementById("offerAmount");
 
             function toggleOfferInputs() {
-                if (percentInput.value.length > 0) {
+                if (percentInput.value.length > 0 && parseFloat(percentInput.value) > 0) {
                     amountInput.disabled = true;
                 } else {
                     amountInput.disabled = false;
                 }
 
-                if (amountInput.value.length > 0) {
+                if (amountInput.value.length > 0 && parseFloat(amountInput.value) > 0) {
                     percentInput.disabled = true;
                 } else {
                     percentInput.disabled = false;
@@ -154,9 +176,7 @@
             percentInput.addEventListener("input", toggleOfferInputs);
             amountInput.addEventListener("input", toggleOfferInputs);
 
-            // Initialize on page load
             toggleOfferInputs();
-
         });
     </script>
 }

@@ -2,168 +2,225 @@
 using Car_Rental.Enum;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Car_Rental.Controllers
 {
     public class CarController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CarController(ApplicationDbContext context)
+        public CarController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
-        // Show all cars
-
-        
-        public IActionResult List()
+        // GET: Car/List
+        public async Task<IActionResult> List()
         {
-            var cars = _context.Cars.ToList();
-            return View(cars); 
+            var cars = await _context.Cars.ToListAsync();
+            return View(cars);
         }
 
+        // GET: Car/Add
         [HttpGet]
         public IActionResult Add()
         {
+            // "Booked" நிலையைத் தவிர்த்து, மற்ற நிலைகளை மட்டும் dropdown-ல் காண்பிக்க
+            PopulateStatusViewBag();
             return View();
         }
 
+        // POST: Car/Add
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Add(Car car, IFormFile ImageFile)
+        public async Task<IActionResult> Add(Car car, IFormFile? ImageFile)
         {
-            if (_context.Cars.Any(c => c.RegistrationNumber == car.RegistrationNumber))
+            // --- மாற்றம் 1: Any() என்பதற்கு பதிலாக AnyAsync() பயன்படுத்தப்பட்டுள்ளது ---
+            if (await _context.Cars.AnyAsync(c => c.RegistrationNumber == car.RegistrationNumber))
             {
                 ModelState.AddModelError("RegistrationNumber", "This registration number already exists.");
             }
+
             if (ModelState.IsValid)
             {
-                if (ImageFile != null && ImageFile.Length > 0)
+                if (ImageFile != null)
                 {
-                    // Create folder path
-                    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/cars");
-                    if (!Directory.Exists(folderPath))
-                        Directory.CreateDirectory(folderPath);
-
-                    // Unique file name
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                    var filePath = Path.Combine(folderPath, fileName);
-
-                    // Save file to wwwroot/images/cars/
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        ImageFile.CopyTo(stream);
-                    }
-
-                    // Save relative path in DB
-                    car.ImageUrl = "/images/cars/" + fileName;
+                    car.ImageUrl = await UploadImage(ImageFile);
                 }
 
                 _context.Cars.Add(car);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(List));
             }
+
+            // ModelState தவறாக இருந்தால், ViewBag-ஐ மீண்டும் நிரப்பவும்
+            PopulateStatusViewBag();
             return View(car);
         }
 
+        // GET: Car/Edit/5
         [HttpGet]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var car = _context.Cars.Find(id);
+            var car = await _context.Cars.FindAsync(id);
             if (car == null) return NotFound();
             return View(car);
         }
 
+        // POST: Car/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(Car car, IFormFile? ImageFile)
+        public async Task<IActionResult> Edit(Car car, IFormFile? ImageFile)
         {
-            if (ModelState.IsValid)
+            // --- மாற்றம் 2: ModelState சரிபார்ப்புக்குப் பிறகு, பிழை ஏற்பட்டால் ViewBag-ஐ நிரப்ப வேண்டும் ---
+            if (!ModelState.IsValid)
             {
-                var existingCar = _context.Cars.AsNoTracking().FirstOrDefault(c => c.CarId == car.CarId);
-                if (existingCar == null) return NotFound();
-
-                // If user uploads a new image
-                if (ImageFile != null && ImageFile.Length > 0)
-                {
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/cars");
-
-                    if (!Directory.Exists(uploadPath))
-                        Directory.CreateDirectory(uploadPath);
-
-                    string filePath = Path.Combine(uploadPath, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        ImageFile.CopyTo(stream);
-                    }
-
-                    car.ImageUrl = "/images/cars/" + fileName;
-                }
-                else
-                {
-                    // Keep old image
-                    car.ImageUrl = existingCar.ImageUrl;
-                }
-
-                _context.Cars.Update(car);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(List));
+                // ஒருவேளை validation பிழை ஏற்பட்டால், பக்கத்தை மீண்டும் காண்பிக்கும் முன்
+                // dropdown-களுக்கு தேவையான ViewBag-ஐ நிரப்ப வேண்டும்.
+                return View(car);
             }
-            return View(car);
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
-        {
-            var car = _context.Cars.Find(id);
-            if (car == null) return NotFound();
 
-            _context.Cars.Remove(car);
-            _context.SaveChanges();
+            var existingCar = await _context.Cars.AsNoTracking().FirstOrDefaultAsync(c => c.CarId == car.CarId);
+            if (existingCar == null) return NotFound();
+
+            if (ImageFile != null)
+            {
+                if (!string.IsNullOrEmpty(existingCar.ImageUrl))
+                {
+                    DeleteImage(existingCar.ImageUrl);
+                }
+                car.ImageUrl = await UploadImage(ImageFile);
+            }
+            else
+            {
+                car.ImageUrl = existingCar.ImageUrl;
+            }
+
+            _context.Cars.Update(car);
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(List));
         }
 
-        public IActionResult Details(int id)
+        // POST: Car/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            var car = _context.Cars.Find(id);
-            if (car == null) return NotFound();
-            return View(car);
-        }
-
-        [HttpGet]
-        public IActionResult GetCarDetails(int id)
-        {
-            var car = _context.Cars.FirstOrDefault(c => c.CarId == id);
+            var car = await _context.Cars.FindAsync(id);
             if (car == null) return NotFound();
 
-            return Json(new
+            if (!string.IsNullOrEmpty(car.ImageUrl))
             {
-                carId = car.CarId,
-                registrationNumber = car.RegistrationNumber,
-                brand = car.Brand,
-                model = car.Model,
-                year = car.Year,
-                rentalPricePerDay = car.RentalPricePerDay,
-                fuelType = car.FuelType.ToString(),
-                transmission = car.Transmission.ToString(),
-                status = car.Status.ToString(),
-                imageUrl = car.ImageUrl,
-                offerPercentage = car.OfferPercentage,
-                offerAmount = car.OfferAmount
-            });
+                DeleteImage(car.ImageUrl);
+            }
+
+            _context.Cars.Remove(car);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(List));
         }
 
         [HttpGet]
-        public IActionResult GetStats()
+        public async Task<IActionResult> CheckAvailability(int carId, DateTime pickupDate, DateTime returnDate)
         {
-            var total = _context.Cars.Count();
-            var available = _context.Cars.Count(c => c.Status == CarStatus.Available);
-            var booked = _context.Cars.Count(c => c.Status == CarStatus.Booked);
+            var isBooked = await _context.Bookings
+                .AnyAsync(b => b.CarID == carId &&
+                               b.Status != BookingStatus.Cancelled &&
+                               b.PickupDate < returnDate &&
+                               b.ReturnDate > pickupDate);
+
+            return Json(new { isAvailable = !isBooked });
+        }
+
+
+        // GET: Car/GetCarDetails/5
+        [HttpGet]
+        public async Task<IActionResult> GetCarDetails(int id)
+        {
+            var car = await _context.Cars
+                .Where(c => c.CarId == id)
+                .Select(c => new
+                {
+                    carId = c.CarId,
+                    imageUrl = c.ImageUrl,
+                    brand = c.Brand,
+                    model = c.Model,
+                    year = c.Year,
+                    rentalPricePerDay = c.RentalPricePerDay,
+                    offerPercentage = c.OfferPercentage,
+                    offerAmount = c.OfferAmount,
+                    fuelType = c.FuelType.ToString(),
+                    transmission = c.Transmission.ToString(),
+                    rating = c.Rating,
+                    numberOfSeats = c.NumberOfSeats,
+                    isAirConditioned = c.IsAirConditioned,
+                    mileage = c.Mileage
+                })
+                .FirstOrDefaultAsync();
+
+            if (car == null) return NotFound();
+            return Json(car);
+        }
+
+
+        // GET: Car/GetStats
+        [HttpGet]
+        public async Task<IActionResult> GetStats()
+        {
+            var total = await _context.Cars.CountAsync();
+            var available = await _context.Cars.CountAsync(c => c.Status == CarStatus.Available);
+            var booked = await _context.Cars.CountAsync(c => c.Status == CarStatus.Booked);
 
             return Json(new { total, available, booked });
+        }
+
+        // --- Private Helper Methods ---
+        private async Task<string> UploadImage(IFormFile file)
+        {
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/cars");
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            await using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+            return "/images/cars/" + uniqueFileName;
+        }
+
+        private void DeleteImage(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl)) return;
+            string imagePath = imageUrl.TrimStart('/');
+            string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, imagePath.Replace('/', Path.DirectorySeparatorChar));
+            try
+            {
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+            }
+        }
+
+        // --- மாற்றம் 3: ViewBag-ஐ நிரப்புவதற்கான ஒரு புதிய helper method ---
+        private void PopulateStatusViewBag()
+        {
+            var statuses = System.Enum.GetValues(typeof(CarStatus))
+                                     .Cast<CarStatus>()
+                                     .Where(s => s != CarStatus.Booked);
+            ViewBag.StatusList = new SelectList(statuses);
         }
     }
 }

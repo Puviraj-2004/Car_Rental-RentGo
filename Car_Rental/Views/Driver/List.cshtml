@@ -2,15 +2,36 @@
 
 @{
     ViewData["Title"] = "All Drivers";
+    Layout = "_AdminLayout";
 }
 
-@{
-    Layout = "_AdminLayout"; // Ensure it uses the LoginLayout
-}
+@* <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/list.css" asp-append-version="true" /> *@
 
+<!-- புகைப்படம் மற்றும் விவரங்களை சீரமைக்க CSS -->
+<style>
+    .details-driver-photo {
+        width: 100%; /* முழு அகலத்தை எடுத்துக்கொள்ளும் */
+        height: 100%; /* உயரத்தை 250px ஆக நிர்ணயிக்கவும் */
+        object-fit: cover; /* படத்தை crop செய்து அழகாக காண்பிக்கும் */
+        border-radius: 0; /* சதுரமாக இருக்க border-radius-ஐ நீக்கவும் */
+        border: none; /* பழைய border-ஐ நீக்கவும் */
+        box-shadow: none; /* பழைய shadow-ஐ நீக்கவும் */
+    }
 
-<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/css/list.css" asp-append-version="true" />
+    /* விவரங்கள் உள்ள div-க்கான padding-ஐ நீக்கவும் */
+    .details-content {
+        padding: 0; /* கண்டெய்னரின் உள்ளே இடைவெளி வேண்டாம் */
+        text-align: left; /* text-align-ஐ இயல்பு நிலைக்கு மாற்றவும் */
+    }
+
+    /* படத்திற்கு கீழே உள்ள விவரங்களுக்கு padding சேர்க்கவும் */
+    .driver-info-body {
+        padding: 1.5rem; /* விவரங்களைச் சுற்றி இடைவெளி */
+        text-align: center; /* பெயர் மட்டும் நடுவில் வர */
+    }
+
+</style>
 
 <div class="row-full">
     <!-- Left Column -->
@@ -154,14 +175,18 @@
                         fetch(`/Driver/GetDriverDetails/${driverId}`)
                             .then(res => res.json())
                             .then(driver => {
+                                // --- மாற்றம் இங்கே தொடங்குகிறது ---
                                 detailsPane.innerHTML = `
                                     <div class="details-content">
-                                        <img src="${driver.photoUrl || '/images/default-user.png'}" />
+                                        <!-- போட்டோவிற்கான class இங்கே சேர்க்கப்பட்டுள்ளது -->
+                                        <img src="${driver.photoUrl || '/images/default-user.png'}" class="details-driver-photo" alt="${driver.fullName}" />
                                         <h4 class="mb-3">${driver.fullName}</h4>
-                                        <ul class="list-group list-group-flush">
+                                        <ul class="list-group list-group-flush text-start">
                                             <li class="list-group-item"><strong>NIC:</strong> ${driver.nic}</li>
                                             <li class="list-group-item"><strong>License:</strong> ${driver.driverLicenseNumber}</li>
                                             <li class="list-group-item"><strong>Expiry Date:</strong> ${driver.licenseExpiryDate}</li>
+                                            <!-- Fee Per Day விவரம் இங்கே சேர்க்கப்பட்டுள்ளது -->
+                                            <li class="list-group-item"><strong>Fee Per Day:</strong> ${driver.feePerDay ? `$${driver.feePerDay.toLocaleString()}` : 'N/A'}</li>
                                             <li class="list-group-item"><strong>Status:</strong> ${driver.status}</li>
                                         </ul>
                                         <div class="mt-4">
@@ -169,6 +194,7 @@
                                             <button type="button" class="btn btn-outline-danger fw-bold delete-btn" data-driver-id="${driver.driverID}">Delete</button>
                                         </div>
                                     </div>`;
+                                // --- மாற்றம் இங்கே முடிகிறது ---
                             });
                     }
                 });

@@ -1,0 +1,109 @@
+﻿/* ========================================================= */
+/* === USER/GUEST LAYOUT STYLES (user-layout.css) === */
+/* ========================================================= */
+
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    background-color: #f8f9fa; /* global.css-லிருந்து மாற்றாக இங்கே வைக்கலாம் */
+    font-family: 'Poppins', sans-serif; /* global.css-லிருந்து மாற்றாக இங்கே வைக்கலாம் */
+    padding-top: 70px;
+}
+
+/* --- Navbar Styling --- */
+.navbar-custom {
+    background-color: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand-custom {
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link-custom {
+    color: #fff !important;
+    margin: 0 15px;
+    font-weight: 500;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+    .navbar-nav .nav-link-custom::after {
+        content: "";
+        position: absolute;
+        width: 0%;
+        height: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+        background-color: #ffc107;
+        transition: width 0.3s ease;
+    }
+
+    .navbar-nav .nav-link-custom:hover::after,
+    .navbar-nav .nav-link-custom.active::after {
+        width: 100%;
+    }
+
+/* --- Dropdown Menu Styling --- */
+.dropdown-menu {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    margin-top: 15px !important;
+    background-color: #ffffff;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    display: block;
+    visibility: hidden;
+}
+
+    .dropdown-menu.show {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+    }
+
+.dropdown-item {
+    color: #333;
+    padding: 10px 20px;
+    font-size: 15px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+    .dropdown-item:hover {
+        background-color: #f0f2f5;
+        color: #007bff;
+        border-radius: 6px;
+    }
+
+    .dropdown-item.dropdown-item-logout:hover {
+        background-color: #ffeef0;
+        color: #dc3545;
+    }
+
+.dropdown-divider {
+    border-top: 1px solid #e9ecef;
+    margin: 8px 0;
+}
+
+/* --- Main Content & Footer --- */
+.main-content {
+    flex-grow: 1;
+}
+
+.footer-custom {
+    background-color: #212529;
+    color: #adb5bd;
+    padding: 2rem 0;
+    text-align: center;
+}

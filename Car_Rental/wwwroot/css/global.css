@@ -1,0 +1,62 @@
+﻿/* ========================================================= */
+/* === GLOBAL STYLESHEET (global.css) === */
+/* === இது தளம் முழுவதற்குமான பொதுவான அலங்காரத்திற்கு === */
+/* ========================================================= */
+
+/* --- Color, Font, and Sizing Variables --- */
+:root {
+    --primary-dark: #2c3e50;
+    --primary-accent: #3498db;
+    --background-light: #f4f7f9;
+    --text-light: #ecf0f1;
+    --text-dark: #34495e;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+/* --- Global Body & Font Styles --- */
+body {
+    background-color: var(--background-light);
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-dark);
+}
+
+/* --- Common Component Styles (Buttons, Badges, etc.) --- */
+.stats-boxes {
+    display: flex;
+    gap: 15px;
+}
+
+.stats-box {
+    flex: 1;
+    padding: 15px;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .stats-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+
+.stats-total {
+    background-color: #0d6efd;
+}
+
+.stats-available {
+    background-color: #198754;
+}
+
+.stats-unavailable, .stats-booked {
+    background-color: #dc3545;
+}
+
+.car-thumb {
+    width: 80px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}

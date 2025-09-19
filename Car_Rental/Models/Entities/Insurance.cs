@@ -21,6 +21,6 @@ namespace Car_Rental.Models.Entities
 
         // Navigation
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-        public ICollection<DamageReport> DamageReports { get; set; } = new List<DamageReport>();
+        //public ICollection<DamageReport> DamageReports { get; set; } = new List<DamageReport>();
     }
 }
