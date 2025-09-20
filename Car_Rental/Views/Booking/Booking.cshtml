@@ -1,10 +1,14 @@
-﻿@using Car_Rental.Models.Entities
-@using Car_Rental.Enum
+﻿@using Car_Rental.Enum
+@using Car_Rental.Models.Entities
+@using System.Security.Claims
 @model Car_Rental.Models.Entities.Booking
 
 @{
+    // Retrieve data passed from the controller via ViewBag
     var car = ViewBag.SelectedCar as Car;
+    var insurances = ViewBag.Insurances as List<Insurance>;
     ViewData["Title"] = "Complete Your Booking";
+    var isUserAuthenticated = User.Identity.IsAuthenticated;
 }
 
 @section Styles {
@@ -19,8 +23,9 @@
             .booking-card .card-header {
                 background-color: #343a40;
                 color: white;
-                padding: 1rem 1.5rem;
+                padding: 1.5rem;
                 border-bottom: 5px solid #ffc107;
+                text-transform: uppercase;
             }
 
             .booking-card .list-group-item {
@@ -59,7 +64,7 @@
             margin-top: 1.5rem;
             margin-bottom: 1rem;
         }
-        /* -- CSS FOR "CHANGE CAR" MODAL CARD UI -- */
+
         .modal-car-card .card-img-container {
             width: 100%;
             aspect-ratio: 16 / 10;
@@ -89,7 +94,6 @@ else
             <h1 class="fw-bold">@ViewData["Title"]</h1>
             <p class="text-muted">You're just a few steps away from hitting the road.</p>
         </div>
-
         <div class="row g-4 g-lg-5">
             <!-- CAR DETAILS COLUMN -->
             <div class="col-lg-5">
@@ -131,15 +135,21 @@ else
 
             <!-- BOOKING FORM COLUMN -->
             <div class="col-lg-7">
-                <form asp-controller="Booking" asp-action="ProceedToAuthentication" method="post" class="p-4 bg-white border rounded">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <form id="mainBookingForm" asp-controller="Booking" asp-action="Booking" method="post" class="p-4 bg-white border rounded">
+                    <div asp-validation-summary="All" class="text-danger"></div>
                     <input type="hidden" asp-for="CarID" id="CarID" value="@car.CarId" />
                     <input type="hidden" asp-for="TotalPrice" id="totalPriceInput" />
 
+                    <!-- விருந்தினர் விவரங்கள் இந்த மறைக்கப்பட்ட புலங்களில் சேமிக்கப்படும் -->
+                    <input type="hidden" name="guestFullName" id="hiddenGuestFullName" />
+                    <input type="hidden" name="guestEmail" id="hiddenGuestEmail" />
+                    <input type="hidden" name="guestPhoneNumber" id="hiddenGuestPhoneNumber" />
+
+
                     <h5 class="form-section-heading">Rental Dates</h5>
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label asp-for="PickupDate" class="form-label fw-bold"></label><input asp-for="PickupDate" class="form-control" id="pickupDate" type="date" /></div>
-                        <div class="col-md-6 mb-3"><label asp-for="ReturnDate" class="form-label fw-bold"></label><input asp-for="ReturnDate" class="form-control" id="returnDate" type="date" /></div>
+                        <div class="col-md-6 mb-3"><label asp-for="PickupDate" class="form-label fw-bold"></label><input asp-for="PickupDate" class="form-control" id="pickupDate" type="date" required /></div>
+                        <div class="col-md-6 mb-3"><label asp-for="ReturnDate" class="form-label fw-bold"></label><input asp-for="ReturnDate" class="form-control" id="returnDate" type="date" required /></div>
                     </div>
                     <div id="availability-message" class="alert d-none"></div>
 
@@ -148,29 +158,23 @@ else
                         <label asp-for="InsuranceID" class="form-label">Insurance</label>
                         <select asp-for="InsuranceID" class="form-select" id="insuranceSelect">
                             <option value="">None</option>
-                            @foreach (var insurance in (List<Insurance>)ViewBag.Insurances)
+                            @foreach (var insurance in insurances)
                             {
                                 <option value="@insurance.InsuranceID" data-percentage="@insurance.CoveragePercentage" data-description="@insurance.Description">@insurance.Name (+@insurance.CoveragePercentage%)</option>
                             }
                         </select>
                         <div id="insuranceDescription" class="small"></div>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="DriverID" class="form-label">Driver</label>
-                        <select asp-for="DriverID" class="form-select" id="driverSelect">
-                            <option value="">I will drive myself</option>
-                            @foreach (var driver in (List<Driver>)ViewBag.Drivers)
-                            {
-                                <option value="@driver.DriverID" data-fee-per-day="@driver.FeePerDay?.ToString("F2")">@driver.FullName (+ $@driver.FeePerDay?.ToString("F2") per day)</option>
-                            }
-                        </select>
-                    </div>
 
-                    <h5 class="form-section-heading">License Details</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label asp-for="DriverLicenseNumber" class="form-label"></label><input asp-for="DriverLicenseNumber" class="form-control" required /></div>
-                        <div class="col-md-6 mb-3"><label asp-for="NIC" class="form-label"></label><input asp-for="NIC" class="form-control" required /></div>
-                        <div class="col-md-6 mb-3"><label asp-for="LicenseExpiryDate" class="form-label"></label><input asp-for="LicenseExpiryDate" type="date" class="form-control" id="licenseExpiryDate" required /><div class="text-danger small mt-1" id="license-expiry-error" style="display:none;">License must be valid after the return date.</div></div>
+                    <!-- விருந்தினர் விவரங்கள் பிரிவு நீக்கப்பட்டது -->
+
+                    <div id="licenseDetailsSection">
+                        <h5 class="form-section-heading">Your License Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label asp-for="DriverLicenseNumber" class="form-label"></label><input asp-for="DriverLicenseNumber" class="form-control" required /></div>
+                            <div class="col-md-6 mb-3"><label asp-for="NIC" class="form-label"></label><input asp-for="NIC" class="form-control" required /></div>
+                            <div class="col-md-6 mb-3"><label asp-for="LicenseExpiryDate" class="form-label"></label><input asp-for="LicenseExpiryDate" type="date" class="form-control" id="licenseExpiryDate" required /><div class="text-danger small mt-1" id="license-expiry-error" style="display:none;">License must be valid after the return date.</div></div>
+                        </div>
                     </div>
 
                     <div class="alert alert-success mt-4">
@@ -178,7 +182,7 @@ else
                         <div class="price-display" id="totalPriceDisplay">$0.00</div>
                         <div id="priceBreakdown" class="small mt-2 border-top pt-2"></div>
                     </div>
-                    <button type="submit" id="confirmBookingBtn" class="btn btn-warning btn-lg w-100 fw-bold"><i class="bi bi-arrow-right-circle-fill"></i> Continue</button>
+                    <button type="submit" id="confirmBookingBtn" class="btn btn-warning btn-lg w-100 fw-bold"><i class="bi bi-credit-card-fill"></i> Proceed to Payment</button>
                 </form>
             </div>
         </div>
@@ -195,125 +199,143 @@ else
     </div>
 </div>
 
+<!-- விருந்தினர் விவரங்கள் இப்போது இந்த மாடலில் கேட்கப்படும் -->
+@if (!isUserAuthenticated)
+{
+    <div class="modal fade" id="guestDetailsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Continue as Guest</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Please provide your details to complete the booking.</p>
+                    <div id="guest-modal-error" class="alert alert-danger d-none"></div>
+                    <form id="guestInfoForm">
+                        <div class="mb-3">
+                            <label for="modalGuestFullName" class="form-label">Full Name</label>
+                            <input type="text" id="modalGuestFullName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalGuestEmail" class="form-label">Email Address</label>
+                            <input type="email" id="modalGuestEmail" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalGuestPhoneNumber" class="form-label">Phone Number</label>
+                            <input type="tel" id="modalGuestPhoneNumber" class="form-control" required />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-secondary">Login Instead</a>
+                    <button type="button" class="btn btn-warning" id="saveGuestDetailsBtn">Save and Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function () {
-            // Safety check to ensure script only runs on the booking page
             if ($('#CarID').length > 0) {
-
-                // --- ELEMENT SELECTORS (for clean, efficient code) ---
-                const mainBookingForm = $('#mainBookingForm');
-                const continueBtn = $('#continueBtn');
-                const guestDetailsModalEl = new bootstrap.Modal(document.getElementById('guestDetailsModal'));
-                const finalizeGuestBookingBtn = $('#finalizeGuestBookingBtn');
-                const changeCarModalEl = new bootstrap.Modal(document.getElementById('changeCarModal'));
-                const isUserAuthenticated = @User.Identity.IsAuthenticated.ToString().ToLower();
-
-                // Form element selectors
+                // --- ELEMENT SELECTORS ---
                 const carIdEl = $('#CarID');
                 const pickupDateEl = $('#pickupDate');
                 const returnDateEl = $('#returnDate');
                 const licenseExpiryDateEl = $('#licenseExpiryDate');
                 const availabilityMessageEl = $('#availability-message');
                 const insuranceSelectEl = $('#insuranceSelect');
-                const driverSelectEl = $('#driverSelect');
+                const changeCarModalEl = new bootstrap.Modal(document.getElementById('changeCarModal'));
 
-                // ==========================================================
-                //    MASTER "CONTINUE" BUTTON LOGIC
-                // ==========================================================
-                continueBtn.on('click', async function() {
-                    // Disable the button temporarily to prevent multiple clicks
-                    continueBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Checking...');
+                // --- MAIN HANDLER for any change that affects price or availability ---
+                async function onFormChange() {
+                    await checkCarAvailability();
+                    calculateTotalPrice();
+                }
 
-                    // 1. Check browser's built-in validation (e.g., required fields)
-                    if (!mainBookingForm[0].checkValidity()) {
-                        mainBookingForm[0].reportValidity();
-                        continueBtn.prop('disabled', false).html('<i class="bi bi-arrow-right-circle-fill"></i> Continue');
-                        return;
-                    }
-
-                    // 2. Perform our custom live checks
-                    const isLicenseValid = validateLicenseExpiry();
-                    const isAvailable = await checkCarAvailability();
-
-                    // 3. If any custom check fails, stop and re-enable the button.
-                    // The error messages will already be visible.
-                    if (!isLicenseValid || !isAvailable) {
-                        continueBtn.prop('disabled', false).html('<i class="bi bi-arrow-right-circle-fill"></i> Continue');
-                        return;
-                    }
-
-                    // --- If all checks pass, proceed to the next step ---
-                    if (isUserAuthenticated) {
-                        mainBookingForm.submit();
-                    } else {
-                        guestDetailsModalEl.show();
-                        // Re-enable the button after opening the modal
-                        continueBtn.prop('disabled', false).html('<i class="bi bi-arrow-right-circle-fill"></i> Continue');
-                    }
-                });
-
-                // --- GUEST MODAL "PROCEED" BUTTON LOGIC ---
-                finalizeGuestBookingBtn.on('click', async function() {
-                    const guestForm = $('#guestDetailsForm');
-                    if (!guestForm[0].checkValidity()) {
-                        guestForm[0].reportValidity();
-                        return;
-                    }
-                    // Your existing, correct logic for packaging and sending guest data...
-                });
-
-                // --- VALIDATION HELPER 1: Car Availability (returns true/false) ---
-                async function checkCarAvailability() {
+                // --- FEATURE: "CHANGE CAR" MODAL LOGIC (இது அப்படியே இருக்கும்) ---
+                $('#changeCarModal').on('show.bs.modal', async function () {
                     const pickupDate = pickupDateEl.val();
                     const returnDate = returnDateEl.val();
-                    if (!pickupDate || !returnDate || new Date(returnDate) <= new Date(pickupDate)) {
-                        availabilityMessageEl.addClass('d-none');
-                        return true;
+                    const contentDiv = $('#availableCarsContent');
+                    if (!pickupDate || !returnDate) {
+                        contentDiv.html('<div class="alert alert-warning">Please select your rental dates first.</div>'); return;
                     }
+                    contentDiv.html('<div class="d-flex justify-content-center p-5"><div class="spinner-border text-warning"></div></div>');
                     try {
-                        const response = await fetch(`/Car/CheckAvailability?carId=${carIdEl.val()}&pickupDate=${pickupDate}&returnDate=${returnDate}`);
-                        const data = await response.json();
-                        if (data.isAvailable) {
-                            availabilityMessageEl.addClass('d-none');
-                            return true;
-                        } else {
-                            availabilityMessageEl.removeClass('d-none').addClass('alert-danger').html('<strong>Not Available!</strong> This car is booked for these dates.');
-                            return false;
-                        }
-                    } catch (error) {
-                        availabilityMessageEl.removeClass('d-none').addClass('alert-danger').text('Error checking availability.');
-                        return false;
-                    }
-                }
-
-                // --- VALIDATION HELPER 2: License Expiry (returns true/false) ---
-                function validateLicenseExpiry() {
-                    const errorDiv = $('#license-expiry-error');
-                    if (returnDateEl.val() && licenseExpiryDateEl.val()) {
-                        if (new Date(licenseExpiryDateEl.val()) <= new Date(returnDateEl.val())) {
-                            errorDiv.slideDown();
-                            return false;
-                        }
-                    }
-                    errorDiv.slideUp();
-                    return true;
-                }
-
-                // --- FEATURE: "CHANGE CAR" MODAL LOGIC ---
-                const changeCarModalElement = document.getElementById('changeCarModal');
-                if (changeCarModalElement) {
-                    changeCarModalElement.addEventListener('show.bs.modal', async () => {
-                        // ... (Your existing, correct logic for the change car modal)
-                    });
-                }
-                $(document).on('click', '.select-car-btn', function() {
-                    // ... (Your existing, correct logic for selecting a car from the modal)
+                        const response = await fetch(`/Car/GetAvailableCars?pickupDate=${pickupDate}&returnDate=${returnDate}&currentCarId=${carIdEl.val()}`);
+                        const availableCars = await response.json();
+                        if (availableCars.length > 0) {
+                            let carsHtml = '<div class="row g-3">';
+                            availableCars.forEach(car => {
+                                carsHtml += `
+                                    <div class="col-md-4"><div class="card h-100 text-center modal-car-card">
+                                        <div class="card-img-container"><img src="${car.imageUrl || '/images/default-car.png'}" class="card-img-top"></div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h6 class="card-title fw-bold">${car.brand} ${car.model}</h6>
+                                            <div class="mt-auto">
+                                                <p class="fw-bold fs-5 mb-2">$${car.rentalPricePerDay.toFixed(2)}<small class="text-muted">/day</small></p>
+                                                <button class="btn btn-sm btn-warning w-100 select-car-btn" data-new-car-id="${car.carId}">Select</button>
+                                            </div></div></div></div>`;
+                            });
+                            carsHtml += '</div>';
+                            contentDiv.html(carsHtml);
+                        } else { contentDiv.html('<div class="alert alert-info">No other cars are available for the selected dates.</div>'); }
+                    } catch (error) { contentDiv.html('<div class="alert alert-danger">Could not load available cars.</div>'); }
                 });
 
-                // --- UI & PRICE FUNCTIONS ---
+                $(document).on('click', '.select-car-btn', function() {
+                    const newCarId = $(this).data('new-car-id');
+                    window.location.href = `/Booking/Booking?carId=${newCarId}&pickupDate=${pickupDateEl.val()}&returnDate=${returnDateEl.val()}`;
+                });
+
+                // -----------------------------------------------------------------
+                // --- புதிதாக சேர்க்கப்பட்ட மற்றும் மாற்றியமைக்கப்பட்ட ஜாவாஸ்கிரிப்ட் ---
+                // -----------------------------------------------------------------
+                const mainBookingForm = $('#mainBookingForm');
+                const isUserAuthenticated = @isUserAuthenticated.ToString().ToLower();
+                let guestModal = null;
+
+                if (!isUserAuthenticated) {
+                    guestModal = new bootstrap.Modal(document.getElementById('guestDetailsModal'));
+                }
+
+                mainBookingForm.on('submit', function(e) {
+                    if (!isUserAuthenticated) {
+                        e.preventDefault(); // படிவம் சமர்ப்பிப்பதை நிறுத்தவும்
+                        guestModal.show(); // விருந்தினர் மாடலைக் காட்டவும்
+                    }
+                    // உள்நுழைந்திருந்தால், படிவம் சாதாரணமாக தொடரும்
+                });
+
+                $('#saveGuestDetailsBtn').on('click', function() {
+                    const guestName = $('#modalGuestFullName').val();
+                    const guestEmail = $('#modalGuestEmail').val();
+                    const guestPhone = $('#modalGuestPhoneNumber').val();
+                    const errorDiv = $('#guest-modal-error');
+
+                    if (!guestName || !guestEmail || !guestPhone) {
+                        errorDiv.text('All fields are required.').removeClass('d-none');
+                        return;
+                    }
+                    errorDiv.addClass('d-none');
+
+                    // விவரங்களை மறைக்கப்பட்ட புலங்களில் நிரப்பவும்
+                    $('#hiddenGuestFullName').val(guestName);
+                    $('#hiddenGuestEmail').val(guestEmail);
+                    $('#hiddenGuestPhoneNumber').val(guestPhone);
+
+                    guestModal.hide(); // மாடலை மறைக்கவும்
+
+                    // முக்கிய படிவத்தைச் சமர்ப்பிக்கவும்
+                    mainBookingForm.submit();
+                });
+
+
+                // --- CORE LOGIC FUNCTIONS (இவை அப்படியே இருக்கும்) ---
                 function initializeDatePickers() {
                     const today = new Date().toISOString().split('T')[0];
                     pickupDateEl.attr('min', today);
@@ -328,10 +350,30 @@ else
                     });
                 }
 
+                async function checkCarAvailability() {
+                    const pickupDate = pickupDateEl.val();
+                    const returnDate = returnDateEl.val();
+                    if (!pickupDate || !returnDate || new Date(returnDate) <= new Date(pickupDate)) {
+                        availabilityMessageEl.addClass('d-none'); return;
+                    }
+                    try {
+                        const response = await fetch(`/Car/CheckAvailability?carId=${carIdEl.val()}&pickupDate=${pickupDate}&returnDate=${returnDate}`);
+                        const data = await response.json();
+                        if (data.isAvailable) {
+                            availabilityMessageEl.addClass('d-none');
+                        } else {
+                            availabilityMessageEl.removeClass('d-none').addClass('alert-danger').html('<strong>Not Available!</strong> This car is booked. Here are some alternatives.');
+                            changeCarModalEl.show();
+                        }
+                    } catch (error) {
+                        availabilityMessageEl.removeClass('d-none').addClass('alert-danger').text('Error checking availability.');
+                    }
+                }
+
                 function updateInsuranceDetails() {
                     const selected = insuranceSelectEl.find('option:selected');
                     const container = $('#insuranceDescription');
-                    if (selected.val()) { container.text(selected.data('description')).slideDown(); } else { container.slideUp(); }
+                    if (selected.val() && selected.data('description')) { container.text(selected.data('description')).slideDown(); } else { container.slideUp(); }
                 }
 
                 function calculateTotalPrice() {
@@ -340,29 +382,31 @@ else
                     const returnDate = new Date(returnDateEl.val());
                     let numberOfDays = 1;
                     if (returnDate > pickupDate) { numberOfDays = Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24)); }
+                    if (numberOfDays < 1) numberOfDays = 1; // குறைந்தபட்சம் ஒரு நாள்
+
                     let rentalTotal = numberOfDays * basePricePerDay;
                     let insuranceCost = 0;
-                    if (insuranceSelectEl.val()) { insuranceCost = rentalTotal * (parseFloat(insuranceSelectEl.find('option:selected').data('percentage')) / 100); }
-                    let driverFee = 0;
-                    if (driverSelectEl.val()) { driverFee = numberOfDays * parseFloat(driverSelectEl.find('option:selected').data('fee-per-day')); }
-                    let finalTotal = rentalTotal + insuranceCost + driverFee;
+                    if (insuranceSelectEl.val()) {
+                        insuranceCost = rentalTotal * (parseFloat(insuranceSelectEl.find('option:selected').data('percentage')) / 100);
+                    }
+
+                    let finalTotal = rentalTotal + insuranceCost;
                     $('#totalPriceDisplay').text('$' + finalTotal.toFixed(2));
                     $('#totalPriceInput').val(finalTotal.toFixed(2));
-                    let breakdownHtml = `<p class="mb-0">Rental (${numberOfDays} days): $${rentalTotal.toFixed(2)}</p>`;
+
+                    let breakdownHtml = `<p class="mb-0">Rental (${numberOfDays} day(s)): $${rentalTotal.toFixed(2)}</p>`;
                     if (insuranceCost > 0) breakdownHtml += `<p class="mb-0">Insurance: + $${insuranceCost.toFixed(2)}</p>`;
-                    if (driverFee > 0) breakdownHtml += `<p class="mb-0">Driver Fee: + $${driverFee.toFixed(2)}</p>`;
                     $('#priceBreakdown').html(breakdownHtml);
                 }
 
                 // --- EVENT LISTENERS ---
-                pickupDateEl.on('change', calculateTotalPrice);
-                returnDateEl.on('change', calculateTotalPrice);
+                pickupDateEl.on('change', onFormChange);
+                returnDateEl.on('change', onFormChange);
                 insuranceSelectEl.on('change', () => { updateInsuranceDetails(); calculateTotalPrice(); });
-                driverSelectEl.on('change', calculateTotalPrice);
 
-                // --- INITIAL CALLS ON PAGE LOAD ---
+                // --- INITIAL CALLS ---
                 initializeDatePickers();
-                calculateTotalPrice();
+                onFormChange();
                 updateInsuranceDetails();
             }
         });

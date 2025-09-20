@@ -13,21 +13,17 @@ namespace Car_Rental.Models.Entities
         [StringLength(20)]
         public string BookingReference { get; set; } = null!;
 
-        [Required]
         public int? UserID { get; set; }
         public User? User { get; set; } = null!;
 
-        [Required]
+
         public int? GuestID { get; set; } // Nullable: For guest users
         public Guest? Guest { get; set; }
 
-        [Required]
+
         public int CarID { get; set; }
         public Car Car { get; set; } = null!;
 
-        [Required]
-        public int? DriverID { get; set; }
-        public Driver? Driver { get; set; } = null!;
 
         public int? InsuranceID { get; set; }
         public Insurance? Insurance { get; set; }

@@ -20,6 +20,7 @@ namespace Car_Rental.Data
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Guest>Guests { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{

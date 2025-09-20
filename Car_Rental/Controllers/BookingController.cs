@@ -4,180 +4,133 @@ using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Text.Json;
-using BCrypt.Net;
 
 namespace Car_Rental.Controllers
 {
     public class BookingController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context; // Assumes your DbContext is named ApplicationDbContext
 
-        public BookingController(ApplicationDbContext context) { _context = context; }
-
-        private static string GenerateBookingReference()
+        public BookingController(ApplicationDbContext context)
         {
-            var random = new Random();
-            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var randomPart = new string(Enumerable.Repeat(chars, 4).Select(s => s[random.Next(s.Length)]).ToArray());
-            return $"BK-{DateTime.UtcNow:yyMMdd}-{randomPart}";
+            _context = context;
         }
 
-        // GET Action: Shows the initial booking page.
         [HttpGet]
-        public async Task<IActionResult> Booking(int id, DateTime? pickupDate, DateTime? returnDate)
+        public async Task<IActionResult> Booking(int Id, DateTime pickupDate, DateTime returnDate)
         {
-            var car = await _context.Cars.FindAsync(id);
-            if (car == null)
+            // 1. Retrieve the selected car from the database
+            var selectedCar = await _context.Cars.FindAsync(Id);
+            if (selectedCar == null)
             {
-                TempData["ErrorMessage"] = "The selected car could not be found.";
-                return RedirectToAction("Cars", "Guest");
+                return NotFound();
             }
 
-            ViewBag.SelectedCar = car;
-            ViewBag.Insurances = await _context.Insurances.ToListAsync();
-            ViewBag.Drivers = await _context.Drivers.Where(d => d.Status == DriverStatus.Available).ToListAsync();
+            // 2. Retrieve all available insurances
+            var insurances = await _context.Insurances.ToListAsync();
+            ViewBag.Insurances = insurances;
+            ViewBag.SelectedCar = selectedCar;
 
-            var bookingModel = new Booking
+            // 3. Create a new booking model and pre-populate with data from the previous page
+            var booking = new Booking
             {
-                CarID = car.CarId,
-                PickupDate = pickupDate ?? DateTime.Today,
-                ReturnDate = returnDate ?? DateTime.Today.AddDays(1)
+                CarID = Id,
+                PickupDate = pickupDate,
+                ReturnDate = returnDate
             };
-            return View(bookingModel);
-        }
 
-        // ==========================================================
-        //         ACTION 1: THE "GATEKEEPER" (NEW LOGIC)
-        // This action is called first when the user clicks "Continue".
-        // ==========================================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ProceedToAuthentication(Booking booking)
-        {
-            // First, validate the rental details (dates, license, etc.)
-            if (!ModelState.IsValid)
-            {
-                // If there's an error, redisplay the form with the errors.
-                ViewBag.SelectedCar = _context.Cars.Find(booking.CarID);
-                ViewBag.Insurances = _context.Insurances.ToList();
-                ViewBag.Drivers = _context.Drivers.Where(d => d.Status == DriverStatus.Available).ToList();
-                return View("Booking", booking);
-            }
-
-            // Temporarily store the valid booking details in the session.
-            TempData["PendingBooking"] = JsonSerializer.Serialize(booking);
-
+            // If user is authenticated, you can pre-populate other fields
             if (User.Identity.IsAuthenticated)
             {
-                // If user is already logged in, they can skip the details step.
-                return RedirectToAction("FinalizeBooking");
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                // You can add logic here to fetch user details and pre-populate the form
+            }
+
+            return View(booking);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Booking(Booking booking, string guestFullName, string guestEmail, string guestPhoneNumber)
+        {
+            // --- Step 1: Handle User & Guest Logic ---
+            if (User.Identity.IsAuthenticated)
+            {
+                // For a registered user, populate the UserID from their claims
+                booking.UserID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                booking.GuestID = null; // Ensure GuestID is null for registered users
             }
             else
             {
-                // If user is a guest, send them to the page to enter their details.
-                return RedirectToAction("GuestDetails");
-            }
-        }
-
-        // ==========================================================
-        //       ACTION 2: SHOW THE GUEST DETAILS PAGE (NEW LOGIC)
-        // ==========================================================
-        [HttpGet]
-        public IActionResult GuestDetails()
-        {
-            if (!TempData.ContainsKey("PendingBooking"))
-            {
-                // Protect this page from being accessed directly.
-                return RedirectToAction("Home", "Guest");
-            }
-            return View();
-        }
-
-        // ==========================================================
-        //       ACTION 3: FINALIZE THE BOOKING (NEW LOGIC)
-        // This is the final step that creates all records.
-        // ==========================================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FinalizeBooking(string guestFullName, string guestEmail, string guestPhoneNumber)
-        {
-            var bookingJson = TempData["PendingBooking"] as string;
-            if (string.IsNullOrEmpty(bookingJson))
-            {
-                return RedirectToAction("Home", "Guest"); // Safety check
-            }
-            var booking = JsonSerializer.Deserialize<Booking>(bookingJson);
-
-            // Find or Create the User based on the guest details provided.
-            User bookingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == guestEmail);
-            if (bookingUser == null)
-            {
-                bookingUser = new User
+                // For a guest user, create a new Guest entity and save it
+                var newGuest = new Guest
                 {
                     FullName = guestFullName,
                     Email = guestEmail,
-                    PhoneNumber = guestPhoneNumber,
-                    Role = "User",
-                    Password = BCrypt.Net.BCrypt.HashPassword(Path.GetRandomFileName()),
-                    MustChangePassword = true
+                    PhoneNumber = guestPhoneNumber
                 };
-                _context.Users.Add(bookingUser);
+                _context.Guests.Add(newGuest);
+                await _context.SaveChangesAsync(); // Save to get the new GuestID
+                booking.GuestID = newGuest.Id; // Assign the new GuestID to the booking
+                booking.UserID = null;
             }
 
-            // Now that we have a user, we can finalize the booking.
-            booking.UserID = bookingUser.UserID;
-            return await CreateBookingAndInvoice(booking);
-        }
-
-        // This private helper is called when a logged-in user skips the guest details page.
-        [HttpGet]
-        public async Task<IActionResult> FinalizeBooking()
-        {
-            if (!User.Identity.IsAuthenticated) return Unauthorized();
-            var bookingJson = TempData["PendingBooking"] as string;
-            if (string.IsNullOrEmpty(bookingJson)) return RedirectToAction("Home", "Guest");
-
-            var booking = JsonSerializer.Deserialize<Booking>(bookingJson);
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            booking.UserID = userId;
-
-            return await CreateBookingAndInvoice(booking);
-        }
-
-        // --- SHARED PRIVATE HELPER FOR CREATING RECORDS ---
-        private async Task<IActionResult> CreateBookingAndInvoice(Booking booking)
-        {
-            var car = await _context.Cars.FindAsync(booking.CarID);
-            if (car == null || car.Status != CarStatus.Available)
-            {
-                TempData["ErrorMessage"] = "Sorry, this car was booked while you were entering your details.";
-                return RedirectToAction("Cars", "Guest");
-            }
-
-            booking.BookingReference = GenerateBookingReference();
-            booking.BookingDate = DateTime.UtcNow;
+            // --- Step 2: Set Automatic Data ---
+            booking.BookingDate = DateTime.Now;
+            booking.BookingReference = GenerateBookingReference(); // Generate a unique reference number
             booking.Status = BookingStatus.pending;
 
-            int numberOfDays = (booking.ReturnDate - booking.PickupDate).Days > 0 ? (booking.ReturnDate - booking.PickupDate).Days : 1;
-            booking.TotalPrice = numberOfDays * car.RentalPricePerDay; // Add your insurance/driver fee logic here
-
-            _context.Bookings.Add(booking);
-            car.Status = CarStatus.Booked;
-
-            var invoice = new Invoice
+            // --- Step 3: Check Model Validation and Final Availability ---
+            if (!ModelState.IsValid)
             {
-                Booking = booking,
-                InvoiceDate = DateTime.UtcNow,
-                Subtotal = booking.TotalPrice,
-                TotalAmount = booking.TotalPrice,
-                IsPaid = false
-            };
-            _context.Invoices.Add(invoice);
+                // Reload data to display the form again with validation errors
+                ViewBag.Insurances = await _context.Insurances.ToListAsync();
+                ViewBag.SelectedCar = await _context.Cars.FindAsync(booking.CarID);
+                return View(booking);
+            }
 
+            // A final check to prevent double-booking at the moment of submission
+            var isCarAvailable = await IsCarAvailableAsync(booking.CarID, booking.PickupDate, booking.ReturnDate);
+            if (!isCarAvailable)
+            {
+                ModelState.AddModelError("", "This car is no longer available for the selected dates. Please select another.");
+                ViewBag.Insurances = await _context.Insurances.ToListAsync();
+                ViewBag.SelectedCar = await _context.Cars.FindAsync(booking.CarID);
+                return View(booking);
+            }
+
+            // --- Step 4: Save the Booking to the Database ---
+            _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Pay", "Invoice", new { reference = booking.BookingReference });
+            // --- Step 5: Redirect to Payment Page ---
+            return RedirectToAction("Payment", new { bookingId = booking.BookingID });
+        }
+
+        // --- HELPER METHODS ---
+
+        private string GenerateBookingReference()
+        {
+            // A simple method to generate a unique booking reference
+            // You might use a more robust method in a production environment
+            return "BOOK-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+        }
+
+        private async Task<bool> IsCarAvailableAsync(int carId, DateTime pickupDate, DateTime returnDate)
+        {
+            // Check if there are any existing bookings for the same car
+            // that overlap with the new booking dates.
+            var existingBookings = await _context.Bookings
+                .Where(b => b.CarID == carId &&
+                            b.Status != BookingStatus.Cancelled && // Ignore cancelled bookings
+                            (
+                                (pickupDate >= b.PickupDate && pickupDate < b.ReturnDate) ||
+                                (returnDate > b.PickupDate && returnDate <= b.ReturnDate) ||
+                                (pickupDate <= b.PickupDate && returnDate >= b.ReturnDate)
+                            ))
+                .AnyAsync();
+
+            return !existingBookings;
         }
     }
 }

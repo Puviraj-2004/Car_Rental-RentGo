@@ -3,7 +3,7 @@
     public enum BookingStatus
     {
         pending,
-        Confirmed,
+        Booked,
         Cancelled,
         Completed
     }

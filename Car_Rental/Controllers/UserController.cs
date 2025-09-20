@@ -98,6 +98,36 @@ namespace Car_Rental.Controllers
             return View();
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(string username, string password, string returnUrl = null, bool rememberMe = false)
+        {
+            var user = _context.Users.FirstOrDefault(u => (u.Email == username || u.PhoneNumber == username));
+
+            if (user != null && _passwordHasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Success)
+            {
+                // ... (your existing code for creating claims and signing in)
+
+                // THE UPGRADED REDIRECT LOGIC
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+                else
+                {
+                    return user.Role switch
+                    {
+                        "Admin" => RedirectToAction("Dashboard", "Admin"),
+                        _ => RedirectToAction("Home", "Guest"),
+                    };
+                }
+            }
+            ViewBag.ErrorMessage = "Invalid credentials.";
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
