@@ -1,4 +1,4 @@
-﻿@model dynamic
+@model dynamic
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "_AdminLayout";
@@ -6,110 +6,387 @@
 
 @section Styles {
     <style>
-        /* KPI கார்டு ஸ்டைல்கள் */
-        .stat-card {
-            position: relative;
-            border: none;
-            border-radius: 1rem;
-            color: #fff;
-            overflow: hidden;
+        /* Modern Dashboard Styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
             padding: 2rem;
-            transition: transform 0.3s ease;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-            .stat-card:hover {
-                transform: translateY(-8px);
-            }
-
-            .stat-card .stat-icon {
-                position: absolute;
-                top: 50%;
-                right: -20px;
-                transform: translateY(-50%);
-                font-size: 6rem;
-                opacity: 0.2;
-            }
-
-            .stat-card .stat-title {
-                font-size: 1rem;
-                font-weight: 500;
-                opacity: 0.9;
-            }
-
-            .stat-card .stat-value {
-                font-size: 2.75rem;
-                font-weight: 700;
-                line-height: 1.2;
-            }
-
-        .bg-gradient-primary {
-            background: linear-gradient(45deg, #3a61ed, #6a82fb);
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
-        .bg-gradient-success {
-            background: linear-gradient(45deg, #198754, #28a745);
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
         }
 
-        .bg-gradient-warning {
-            background: linear-gradient(45deg, #ffc107, #ffda6a);
+        /* Modern KPI Cards */
+        .kpi-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .bg-gradient-danger {
-            background: linear-gradient(45deg, #dc3545, #fd5c6c);
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
         }
 
-        /* Insight Card Styles */
-        .insight-card .card-body {
-            text-align: center;
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--card-color);
         }
 
-        .insight-card .insight-title {
+        .kpi-card.revenue::before { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .kpi-card.customers::before { background: linear-gradient(45deg, #2196F3, #1976D2); }
+        .kpi-card.fleet::before { background: linear-gradient(45deg, #FF9800, #F57C00); }
+        .kpi-card.bookings::before { background: linear-gradient(45deg, #9C27B0, #7B1FA2); }
+
+        .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-icon.revenue { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .kpi-icon.customers { background: linear-gradient(45deg, #2196F3, #1976D2); }
+        .kpi-icon.fleet { background: linear-gradient(45deg, #FF9800, #F57C00); }
+        .kpi-icon.bookings { background: linear-gradient(45deg, #9C27B0, #7B1FA2); }
+
+        .kpi-title {
             font-size: 0.9rem;
             color: #6c757d;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
         }
 
-        .insight-card .insight-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #343a40;
-        }
-
-        .insight-card .insight-icon {
+        .kpi-value {
             font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-change {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .kpi-change.positive { color: #28a745; }
+        .kpi-change.negative { color: #dc3545; }
+
+        /* Quick Actions Section */
+        .quick-actions {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        /* Recent Activity Section */
+        .activity-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border-left: 3px solid #e9ecef;
             margin-bottom: 1rem;
+            border-radius: 0 10px 10px 0;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            border-left-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 2rem;
+            }
+            
+            .kpi-value {
+                font-size: 2rem;
+            }
+            
+            .quick-action-btn {
+                display: block;
+                margin: 0.5rem 0;
+                text-align: center;
+            }
         }
     </style>
 }
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard Overview</h1>
+    <!-- Modern Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="dashboard-title">Welcome Back, Admin!</h1>
+                <p class="dashboard-subtitle mb-0">Here's what's happening with your car rental business today.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex align-items-center justify-content-end">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    <span>@DateTime.Now.ToString("MMMM dd, yyyy")</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    @if (Model.MustChangePassword) { /* ... alert code ... */ }
+    @if (Model.MustChangePassword) { 
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Security Notice:</strong> Please change your default password for better security.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-    <!-- KPI கார்டுகள் -->
-    <div class="row g-4">
-        <div class="col-xl-3 col-md-6"><div class="stat-card bg-gradient-success"><div class="stat-title">TOTAL REVENUE</div><div class="stat-value">@Model.TotalRevenue.ToString("C")</div><i class="fas fa-dollar-sign stat-icon"></i></div></div>
-        <div class="col-xl-3 col-md-6"><div class="stat-card bg-gradient-primary"><div class="stat-title">ACTIVE CUSTOMERS</div><div class="stat-value">@Model.ActiveCustomers</div><i class="fas fa-users stat-icon"></i></div></div>
-        <div class="col-xl-3 col-md-6"><div class="stat-card bg-gradient-warning text-dark"><div class="stat-title">TOTAL FLEET</div><div class="stat-value">@Model.TotalCars</div><i class="fas fa-car stat-icon"></i></div></div>
-        <div class="col-xl-3 col-md-6"><div class="stat-card bg-gradient-danger"><div class="stat-title">TOTAL BOOKINGS</div><div class="stat-value">@Model.TotalBookings</div><i class="fas fa-calendar-check stat-icon"></i></div></div>
+    <!-- Modern KPI Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card revenue">
+                <div class="kpi-icon revenue">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="kpi-title">Total Revenue</div>
+                <div class="kpi-value">@Model.TotalRevenue.ToString("C")</div>
+                <div class="kpi-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>+12.5% from last month
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card customers">
+                <div class="kpi-icon customers">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="kpi-title">Active Customers</div>
+                <div class="kpi-value">@Model.ActiveCustomers</div>
+                <div class="kpi-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>+8.2% from last month
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card fleet">
+                <div class="kpi-icon fleet">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="kpi-title">Total Fleet</div>
+                <div class="kpi-value">@Model.TotalCars</div>
+                <div class="kpi-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>+2 new vehicles
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card bookings">
+                <div class="kpi-icon bookings">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="kpi-title">Total Bookings</div>
+                <div class="kpi-value">@Model.TotalBookings</div>
+                <div class="kpi-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>+15.3% from last month
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Insight Cards -->
-    <div class="row g-4 mt-2">
-        <div class="col-lg-4 col-md-6"><div class="card insight-card h-100"><div class="card-body"><div class="insight-icon text-info"><i class="fas fa-chart-line"></i></div><div class="insight-title">THIS MONTH'S REVENUE</div><div class="insight-value">@Model.CurrentMonthRevenue.ToString("C")</div></div></div></div>
-        <div class="col-lg-4 col-md-6"><div class="card insight-card h-100"><div class="card-body"><div class="insight-icon text-primary"><i class="fas fa-trophy"></i></div><div class="insight-title">MOST BOOKED VEHICLE</div><div class="insight-value">@Model.MostBookedVehicle</div></div></div></div>
-        <div class="col-lg-4 col-md-6"><div class="card insight-card h-100"><div class="card-body"><div class="insight-icon text-warning"><i class="fas fa-star"></i></div><div class="insight-title">TOP RATED VEHICLE</div><div class="insight-value">@Model.MostRatedVehicle</div></div></div></div>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h5 class="mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+        <div class="row">
+            <div class="col-md-12">
+                <a href="/Admin/Booking" class="quick-action-btn">
+                    <i class="fas fa-calendar-plus me-2"></i>View All Bookings
+                </a>
+                <a href="/Admin/Customers" class="quick-action-btn">
+                    <i class="fas fa-users me-2"></i>Manage Customers
+                </a>
+                <a href="/Admin/Cars" class="quick-action-btn">
+                    <i class="fas fa-car me-2"></i>Fleet Management
+                </a>
+                <a href="/Admin/Reports" class="quick-action-btn">
+                    <i class="fas fa-chart-bar me-2"></i>Generate Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights and Activity -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="activity-card">
+                <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>New Booking</strong>
+                            <p class="mb-1 small">Toyota Camry booked by John Doe</p>
+                            <span class="activity-time">2 minutes ago</span>
+                        </div>
+                        <i class="fas fa-calendar-plus text-success"></i>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>Payment Received</strong>
+                            <p class="mb-1 small">$250 payment for booking #RG123456</p>
+                            <span class="activity-time">15 minutes ago</span>
+                        </div>
+                        <i class="fas fa-dollar-sign text-success"></i>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>Vehicle Returned</strong>
+                            <p class="mb-1 small">Honda Civic returned by Jane Smith</p>
+                            <span class="activity-time">1 hour ago</span>
+                        </div>
+                        <i class="fas fa-car text-info"></i>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>New Customer</strong>
+                            <p class="mb-1 small">Mike Johnson registered</p>
+                            <span class="activity-time">3 hours ago</span>
+                        </div>
+                        <i class="fas fa-user-plus text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="activity-card text-center">
+                        <div class="kpi-icon revenue mx-auto mb-3">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h6>This Month's Revenue</h6>
+                        <h4 class="text-success">@Model.CurrentMonthRevenue.ToString("C")</h4>
+                        <small class="text-muted">+18% vs last month</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="activity-card text-center">
+                        <div class="kpi-icon customers mx-auto mb-3">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h6>Most Booked Vehicle</h6>
+                        <h5 class="text-primary">@Model.MostBookedVehicle</h5>
+                        <small class="text-muted">Popular choice</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="activity-card text-center">
+                        <div class="kpi-icon fleet mx-auto mb-3">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h6>Top Rated Vehicle</h6>
+                        <h5 class="text-warning">@Model.MostRatedVehicle</h5>
+                        <small class="text-muted">Customer favorite</small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Charts Section -->
-    <div class="row mt-5 g-4">
-        <div class="col-lg-12"><div class="card h-100 p-3"><h5 class="mb-3">Monthly Revenue Trends (Last 12 Months)</h5><canvas id="revenueChart"></canvas></div></div>
-        <div class="col-lg-7 mt-4"><div class="card h-100 p-3"><h5 class="mb-3">Booking Trends (Last 12 Months)</h5><canvas id="bookingsChart"></canvas></div></div>
-        <div class="col-lg-5 mt-4"><div class="card h-100 p-3"><h5 class="mb-3">Fleet Status</h5><canvas id="fleetStatusChart"></canvas></div></div>
+    <div class="row g-4">
+        <div class="col-lg-12">
+            <div class="chart-card">
+                <h5 class="chart-title">
+                    <i class="fas fa-calendar-alt me-2"></i>Booking Trends (Last 12 Months)
+                </h5>
+                <canvas id="bookingsChart" height="80"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -119,31 +396,40 @@
         document.addEventListener("DOMContentLoaded", function () {
             Chart.defaults.font.family = "'Poppins', sans-serif";
 
-            // 1. Revenue Bar Chart - AJAX மூலம்
-            fetch('/Admin/GetRevenueTrends')
-                .then(response => response.json()).then(result => {
-                    const ctxBar = document.getElementById('revenueChart').getContext('2d');
-                    new Chart(ctxBar, { type: 'bar', data: { labels: result.labels, datasets: [{ label: 'Monthly Revenue', data: result.data, backgroundColor: 'rgba(25, 135, 84, 0.7)', borderColor: 'rgba(25, 135, 84, 1)', borderWidth: 1 }] } });
-                }).catch(error => console.error('Error fetching revenue data:', error));
-
-            // 2. Bookings Line Chart - AJAX மூலம்
+            // Bookings Line Chart - AJAX மூலம்
             fetch('/Admin/GetBookingTrends')
                 .then(response => response.json()).then(result => {
                     const ctxLine = document.getElementById('bookingsChart').getContext('2d');
-                    new Chart(ctxLine, { type: 'line', data: { labels: result.labels, datasets: [{ label: 'Bookings', data: result.data, borderColor: 'rgba(13, 110, 253, 1)', backgroundColor: 'rgba(13, 110, 253, 0.1)', fill: true, tension: 0.4 }] } });
+                    new Chart(ctxLine, { 
+                        type: 'line', 
+                        data: { 
+                            labels: result.labels, 
+                            datasets: [{ 
+                                label: 'Bookings', 
+                                data: result.data, 
+                                borderColor: 'rgba(13, 110, 253, 1)', 
+                                backgroundColor: 'rgba(13, 110, 253, 0.1)', 
+                                fill: true, 
+                                tension: 0.4 
+                            }] 
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
                 }).catch(error => console.error('Error fetching booking data:', error));
-
-            // 3. Fleet Status Doughnut Chart - Model-லிருந்து நேரடியாக
-            const available = @(Model.AvailableCars ?? 0), booked = @(Model.BookedCars ?? 0), maintenance = @(Model.MaintenanceCars ?? 0), notAvailable = @(Model.NotAvailableCars ?? 0);
-            const ctxDoughnut = document.getElementById('fleetStatusChart').getContext('2d');
-            new Chart(ctxDoughnut, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Available', 'Booked / On-Rent', 'Under Maintenance', 'Not Available'],
-                    datasets: [{ data: [available, booked, maintenance, notAvailable], backgroundColor: ['rgba(25, 135, 84, 0.9)', 'rgba(220, 53, 69, 0.9)', 'rgba(255, 193, 7, 0.9)', 'rgba(108, 117, 125, 0.9)'], borderColor: ['#ffffff'], borderWidth: 2 }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
         });
     </script>
 }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Car_Rental.Models.Entities
 {
@@ -29,7 +29,6 @@ namespace Car_Rental.Models.Entities
 
         // Navigation
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

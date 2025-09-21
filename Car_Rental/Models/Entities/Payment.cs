@@ -1,4 +1,4 @@
-﻿using Car_Rental.Enum;
+using Car_Rental.Enum;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,9 +13,11 @@ namespace Car_Rental.Models.Entities
         public int? BookingId { get; set; }
         public Booking? Booking { get; set; }
 
-        [Required]
-        public int UserId { get; set; }
-        public User User { get; set; } = null!;
+        public int? UserId { get; set; }
+        public User? User { get; set; }
+
+        public int? GuestId { get; set; }
+        public Guest? Guest { get; set; }
 
         // Payment details
         [Required]
@@ -40,5 +42,20 @@ namespace Car_Rental.Models.Entities
 
         [StringLength(100)]
         public string? TransactionId { get; set; }
+
+        // Card Details (for saved cards)
+        [StringLength(4)]
+        public string? CardLastFourDigits { get; set; }
+
+        [StringLength(50)]
+        public string? CardHolderName { get; set; }
+
+        [StringLength(20)]
+        public string? CardType { get; set; } // Visa, MasterCard, etc.
+
+        [StringLength(7)]
+        public string? CardExpiryMonth { get; set; } // MM/YY format
+
+        public bool SaveCard { get; set; } = false;
     }
 }

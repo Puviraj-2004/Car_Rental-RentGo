@@ -1,44 +1,29 @@
+// RentGo Car Rental - Global JavaScript
+// This file contains common JavaScript functionality used across the application
+
 document.addEventListener("DOMContentLoaded", function () {
-    var chartElement = document.getElementById('bookingChart');
-    if (!chartElement) {
-        return; // Exit if chart element doesn't exist
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     }
-    var ctx = chartElement.getContext('2d');
 
-var gradient = ctx.createLinearGradient(0, 0, 0, 400);
-gradient.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
-gradient.addColorStop(1, 'rgba(54, 162, 235, 0)');
-
-var bookingChart = new Chart(ctx, {
-    type: 'line',
-data: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-datasets: [{
-    label: 'Bookings',
-data: [30, 45, 60, 40, 70, 90],
-borderColor: 'rgb(54, 162, 235)',
-backgroundColor: gradient,
-tension: 0.4,
-fill: true,
-pointBackgroundColor: '#fff',
-pointBorderColor: 'rgb(54, 162, 235)',
-pointHoverBackgroundColor: 'rgb(54, 162, 235)',
-pointHoverBorderColor: '#fff'
-            }]
-        },
-options: {
-    responsive: true,
-maintainAspectRatio: false,
-scales: {
-    y: {
-    beginAtZero: true
-                }
-            },
-plugins: {
-    legend: {
-    display: false
-                }
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert-dismissible');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            if (alert && alert.parentNode) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 500);
             }
-        }
+        }, 5000);
     });
+
 });

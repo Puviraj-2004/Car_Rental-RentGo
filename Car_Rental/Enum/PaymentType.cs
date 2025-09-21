@@ -4,7 +4,7 @@
     {
         BookingDeposit,
         RentalFee,
-        DamageFee, 
+        DamageFee,
         LateReturnFee,
         InsuranceFee
     }

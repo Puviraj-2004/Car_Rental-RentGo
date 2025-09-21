@@ -10,6 +10,7 @@
 <!-- ============================================= -->
 @section Styles {
     <style>
+        /* --- Hero Section & Filter --- */
         .hero-section {
             position: relative;
             height: 90vh;
@@ -76,212 +77,67 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Modern Digital Car Card Styles */
-        .modern-car-card {
-            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 24px;
+        /* --- New, Simplified Car Card Styles --- */
+        .simple-car-card {
+            background-color: #ffffff;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            position: relative;
-            backdrop-filter: blur(10px);
-        }
-
-        .modern-car-card:hover {
-            transform: translateY(-15px) rotateX(5deg);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
-            border-color: #ffc107;
-        }
-
-        .car-image-container {
-            position: relative;
-            height: 280px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e9ecef;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
         }
 
-        .car-main-image {
+            .simple-car-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+            }
+
+        .car-image-wrapper {
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .car-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: all 0.6s ease;
-            filter: brightness(1.1) contrast(1.1);
+            transition: transform 0.4s ease;
         }
 
-        .modern-car-card:hover .car-main-image {
-            transform: scale(1.15);
-            filter: brightness(1.2) contrast(1.2);
+        .simple-car-card:hover .car-image {
+            transform: scale(1.05);
         }
 
-        .car-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 193, 7, 0.95);
-            color: #000;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
-        }
-
-        .car-info-section {
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-        }
-
-        .car-brand-model {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .car-year-category {
-            color: #6c757d;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .car-details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .detail-item {
-            background: rgba(248, 249, 250, 0.8);
-            padding: 1rem;
-            border-radius: 16px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 193, 7, 0.1);
-        }
-
-        .detail-item:hover {
-            background: rgba(255, 193, 7, 0.1);
-            transform: translateY(-3px);
-            border-color: rgba(255, 193, 7, 0.3);
-        }
-
-        .detail-icon {
-            font-size: 1.5rem;
-            color: #ffc107;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .detail-label {
-            font-size: 0.75rem;
-            color: #6c757d;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.25rem;
-        }
-
-        .detail-value {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .car-rating-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: rgba(255, 193, 7, 0.05);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 193, 7, 0.1);
-        }
-
-        .rating-stars {
-            color: #ffc107;
-            font-size: 1.1rem;
-            margin-right: 0.75rem;
-        }
-
-        .rating-info {
-            font-size: 0.9rem;
-            color: #495057;
-            font-weight: 600;
-        }
-
-        .car-price-display {
-            text-align: center;
+        .car-info {
             padding: 1.5rem;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border-radius: 20px;
-            color: white;
-            margin-top: 1rem;
-            position: relative;
-            overflow: hidden;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .car-price-display::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .modern-car-card:hover .car-price-display::before {
-            left: 100%;
-        }
-
-        .price-amount {
-            font-size: 2rem;
-            font-weight: 900;
+        .car-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #212529;
             margin-bottom: 0.25rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .price-period {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            font-weight: 500;
+        .car-year {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 1.5rem;
         }
 
-        /* Responsive Design */
-        @@media (max-width: 768px) {
-            .car-details-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-            
-            .car-info-section {
-                padding: 1.5rem;
-            }
-            
-            .car-image-container {
-                height: 240px;
-            }
+        .btn-view-details {
+            margin-top: auto;
         }
 
-        /* How It Works Section */
+        /* --- How It Works Section --- */
         .step-icon {
             width: 70px;
             height: 70px;
@@ -300,7 +156,7 @@
             transform: scale(1.1) rotate(10deg);
         }
 
-        /* Why Choose Us Section */
+        /* --- Why Choose Us Section --- */
         .feature-box {
             padding: 2rem;
             text-align: center;
@@ -360,7 +216,7 @@
     </div>
 </div>
 
-<div class="container my-5">
+<div class="container my-5 py-5" id="carsSection">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Our Top Rated Vehicles</h2>
         <a asp-controller="Guest" asp-action="Cars" class="btn btn-outline-dark fw-bold">
@@ -373,67 +229,32 @@
         <div class="row g-4">
             @foreach (var car in Model)
             {
-                <div class="col-12 col-lg-6">
-                    <div class="modern-car-card h-100">
-                        <!-- Car Image Section -->
-                        <div class="car-image-container">
-                            <img src="@(string.IsNullOrEmpty(car.ImageUrl) ? "/images/default-car.png" : car.ImageUrl)" 
-                                 class="car-main-image" 
+                <div class="col-12 col-md-6 col-lg-4 d-flex align-items-stretch">
+                    <div class="simple-car-card">
+                        <!-- Car Image -->
+                        <div class="car-image-wrapper">
+                            <img src="@(string.IsNullOrEmpty(car.ImageUrl) ? "/images/default-car.png" : car.ImageUrl)"
+                                 class="car-image"
                                  alt="@car.Brand @car.Model" />
-                            <div class="car-badge">Premium</div>
                         </div>
-                        
-                        <!-- Car Information Section -->
-                        <div class="car-info-section">
-                            <!-- Brand and Model -->
-                            <h3 class="car-brand-model">@car.Brand @car.Model</h3>
-                            <div class="car-year-category">@car.Year • Luxury Vehicle</div>
-                            
-                            <!-- Car Details Grid -->
-                            <div class="car-details-grid">
-                                <div class="detail-item">
-                                    <i class="detail-icon bi bi-fuel-pump-fill"></i>
-                                    <div class="detail-label">Fuel Type</div>
-                                    <div class="detail-value">Petrol</div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="detail-icon bi bi-gear-fill"></i>
-                                    <div class="detail-label">Transmission</div>
-                                    <div class="detail-value">Automatic</div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="detail-icon bi bi-people-fill"></i>
-                                    <div class="detail-label">Capacity</div>
-                                    <div class="detail-value">5 Seats</div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="detail-icon bi bi-speedometer2"></i>
-                                    <div class="detail-label">Mileage</div>
-                                    <div class="detail-value">15 km/l</div>
-                                </div>
+
+                        <!-- Car Information -->
+                        <div class="car-info">
+                            <div>
+                                <h5 class="car-title">@car.Brand @car.Model</h5>
+                                <p class="car-year">@car.Year</p>
                             </div>
-                            
-                            <!-- Rating Section -->
-                            <div class="car-rating-section">
-                                <div class="rating-stars">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-half"></i>
-                                </div>
-                                <div class="rating-info">4.5 • 128 Reviews</div>
-                            </div>
-                            
-                            <!-- Price Display -->
-                            <div class="car-price-display">
-                                <div class="price-amount">$89</div>
-                                <div class="price-period">per day</div>
-                            </div>
+
                         </div>
                     </div>
                 </div>
             }
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-5 bg-light rounded">
+            <p class="lead text-muted">Sorry, no cars are available at the moment. Please check back later!</p>
         </div>
     }
 </div>
@@ -568,20 +389,18 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize existing functionality
             initializeDatePickers();
             scrollToResultsIfNeeded();
-            
-            // Initialize modern car card animations
-            initializeModernCarCards();
         });
 
         function initializeDatePickers() {
             const pickupDateInput = document.getElementById('pickupDate');
             const returnDateInput = document.getElementById('returnDate');
             if (!pickupDateInput || !returnDateInput) return;
+
             const today = new Date().toISOString().split('T')[0];
             pickupDateInput.setAttribute('min', today);
+
             const updateReturnDateMin = () => {
                 const pickupValue = pickupDateInput.value;
                 if (pickupValue) {
@@ -596,7 +415,9 @@
                     returnDateInput.removeAttribute('min');
                 }
             };
+
             pickupDateInput.addEventListener('change', updateReturnDateMin);
+            // Ensure the return date is validated on page load if pickup date is already set
             updateReturnDateMin();
         }
 
@@ -605,50 +426,12 @@
             if (urlParams.has('pickupDate')) {
                 const carsSection = document.getElementById('carsSection');
                 if (carsSection) {
-                    carsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Using a timeout gives the page a moment to render before scrolling
+                    setTimeout(() => {
+                        carsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
                 }
             }
-        }
-
-        function initializeModernCarCards() {
-            // Add staggered entrance animation to car cards
-            const carCards = document.querySelectorAll('.modern-car-card');
-            carCards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(50px) scale(0.9)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'all 0.8s cubic-bezier(0.23, 1, 0.32, 1)';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0) scale(1)';
-                }, index * 200);
-            });
-
-            // Add click interaction for detail items
-            const detailItems = document.querySelectorAll('.detail-item');
-            detailItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // Add a subtle pulse effect
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = 'scale(1)';
-                    }, 150);
-                });
-            });
-
-            // Add parallax effect to car images on scroll
-            window.addEventListener('scroll', () => {
-                const carImages = document.querySelectorAll('.car-main-image');
-                carImages.forEach(image => {
-                    const rect = image.getBoundingClientRect();
-                    const scrolled = window.pageYOffset;
-                    const rate = scrolled * -0.5;
-                    
-                    if (rect.bottom >= 0 && rect.top <= window.innerHeight) {
-                        image.style.transform = `translateY(${rate * 0.1}px)`;
-                    }
-                });
-            });
         }
     </script>
 }

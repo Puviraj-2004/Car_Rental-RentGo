@@ -1,8 +1,8 @@
-﻿using Car_Rental.Data;
+using Car_Rental.Data;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Car_Rental
 {
@@ -35,16 +35,19 @@ namespace Car_Rental
 
 
 
+            // Database seeding
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 try
                 {
                     var context = services.GetRequiredService<ApplicationDbContext>();
-
                     var passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
 
-                    // Admin user aagave illainna mattum create pannurom
+                    // Ensure database is created
+                    context.Database.EnsureCreated();
+
+                    // Create admin user if doesn't exist
                     if (!context.Users.Any(u => u.Email == "admin@rentgo.com"))
                     {
                         var adminUser = new User
@@ -52,13 +55,17 @@ namespace Car_Rental
                             FullName = "Administrator",
                             Email = "admin@rentgo.com",
                             PhoneNumber = "0762004256",
-                            Password = passwordHasher.HashPassword(null, "Admin123"),
                             Role = "Admin",
-                            MustChangePassword = true 
+                            MustChangePassword = true
                         };
+
+                        adminUser.Password = passwordHasher.HashPassword(adminUser, "Admin123!");
 
                         context.Users.Add(adminUser);
                         context.SaveChanges();
+
+                        var logger = services.GetRequiredService<ILogger<Program>>();
+                        logger.LogInformation("Admin user created successfully. Email: admin@rentgo.com, Password: Admin123!");
                     }
                 }
                 catch (Exception ex)

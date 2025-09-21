@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/global.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin-layout.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Car_Rental.styles.css" asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -45,13 +44,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a asp-area="" asp-controller="Customer" asp-action="CustomerList" class="nav-link">
-                        <i class="fas fa-users"></i> <span class="nav-text">Customer Directory</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a asp-area="" asp-controller="Driver" asp-action="List" class="nav-link">
-                        <i class="fas fa-id-card-alt"></i> <span class="nav-text">Drivers</span>
+                    <a asp-area="" asp-controller="Admin" asp-action="Customers" class="nav-link">
+                        <i class="fas fa-users"></i> <span class="nav-text">Customer Details</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -72,22 +66,29 @@
                 <i class="fas fa-bars"></i>
             </button>
 
-            <!-- Topbar Actions (Search, Notifications, Profile) -->
+            <!-- Page Title with Icon -->
+            <div class="topbar-title d-flex align-items-center">
+                <div class="page-icon me-3">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 text-white">@ViewData["Title"]</h4>
+                    <small class="text-light opacity-75">Admin Panel</small>
+                </div>
+            </div>
+
+            <!-- Simplified Admin Profile -->
             <div class="topbar-actions ms-auto">
-                <!-- User Profile Dropdown -->
-                <div class="dropdown profile-dropdown">
-                    <a href="#" class="d-flex align-items-center dropdown-toggle" data-bs-toggle="dropdown">
-                        <img src="~/images/default-avatar.png" alt="Profile" class="profile-img me-2">
-                        <div class="profile-info d-none d-md-block">
-                            <div class="profile-name">Admin User</div>
-                            <div class="profile-role">Administrator</div>
+                <div class="admin-profile" onclick="showLogoutModal()">
+                    <div class="d-flex align-items-center cursor-pointer">
+                        <div class="profile-avatar me-2">
+                            <i class="fas fa-user-shield"></i>
                         </div>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" asp-controller="User" asp-action="Profile">Profile</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a></li>
-                    </ul>
+                        <div class="profile-info text-white">
+                            <div class="profile-name">Admin User</div>
+                            <small class="text-light opacity-75">Administrator</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -97,6 +98,52 @@
             <main role="main" class="main-content">
                 @RenderBody()
             </main>
+            
+            <!-- Admin Footer -->
+            <footer class="admin-footer">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <p class="mb-0 text-muted">
+                                <i class="fas fa-copyright me-1"></i>
+                                @DateTime.Now.Year RentGo Car Rental. All rights reserved.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-sign-out-alt me-2"></i>Confirm Logout
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-question-circle fa-3x text-warning"></i>
+                    </div>
+                    <h6>Are you sure you want to logout?</h6>
+                    <p class="text-muted small">You will be redirected to the home page.</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <form asp-controller="User" asp-action="Logout" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Yes, Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -131,7 +178,140 @@
                 bestMatch.classList.add('active');
             }
         });
+
+        function showLogoutModal() {
+            const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            modal.show();
+        }
     </script>
+
+    <style>
+        /* Enhanced Topbar Styles */
+        .topbar {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border-bottom: 3px solid #3498db;
+        }
+
+        .topbar-title h4 {
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .page-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(52, 152, 219, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3498db;
+            font-size: 1.2rem;
+        }
+
+        .menu-toggle {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .revenue-display {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .revenue-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .profile-avatar {
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .profile-avatar-large {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .profile-menu {
+            min-width: 280px;
+        }
+
+        .notification-dropdown {
+            min-width: 300px;
+        }
+
+        .notification-dropdown .dropdown-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .notification-dropdown .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-outline-light:hover {
+            background-color: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .admin-profile {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-profile:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        /* Admin Footer Styles */
+        .admin-footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+
+        .admin-footer p {
+            font-size: 0.875rem;
+        }
+
+        .admin-footer i {
+            color: #6c757d;
+        }
+    </style>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Car_Rental.Models.Entities
 {
@@ -14,6 +14,9 @@ namespace Car_Rental.Models.Entities
         [Required]
         public int CarId { get; set; }
         public Car Car { get; set; } = null!;
+
+        public int? BookingId { get; set; }
+        public Booking? Booking { get; set; }
 
         [Required]
         [Range(1, 5)]

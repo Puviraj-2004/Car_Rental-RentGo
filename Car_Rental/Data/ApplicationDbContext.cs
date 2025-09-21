@@ -10,16 +10,12 @@ namespace Car_Rental.Data
 
         // DbSets
         public DbSet<User> Users { get; set; }
-        public DbSet<Staff> Staffs { get; set; }
         public DbSet<Car> Cars { get; set; }
-        public DbSet<Driver> Drivers { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Insurance> Insurances { get; set; }
-        public DbSet<DiscountCode> DiscountCodes { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Review> Reviews { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
         public DbSet<Guest> Guests { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)

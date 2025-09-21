@@ -42,12 +42,12 @@
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom @(currentAction == "Cars" ? "active" : "")" asp-controller="Guest" asp-action="Cars">Cars</a>
                     </li>
-                    <li class="nav-item">
+                    @* <li class="nav-item">
                         <a class="nav-link nav-link-custom" href="/Guest/Home#about">About</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom" href="/Guest/Home#contact">Contact</a>
-                    </li>
+                    </li> *@
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom @(currentController == "Booking" ? "active" : "")" asp-controller="Booking" asp-action="MyBookings">
                             <i class="fas fa-search me-1"></i>My Bookings
@@ -62,9 +62,6 @@
                                 <i class="fas fa-user me-2"></i>@User.Identity.Name
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="/User/Profile"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
-                                <li><a class="dropdown-item" href="/User/Settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form asp-controller="User" asp-action="Logout" method="post" id="logoutForm">
                                         <button type="button" class="dropdown-item dropdown-item-logout" id="logoutButton">

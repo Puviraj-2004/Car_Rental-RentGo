@@ -1,4 +1,4 @@
-﻿using Car_Rental.Data;
+using Car_Rental.Data;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -81,11 +81,6 @@ namespace Car_Rental.Controllers
                     new AuthenticationProperties { IsPersistent = rememberMe }
                 );
 
-                // =============================================================
-                //              SARI SEYYAPPATTA REDIRECT LOGIC
-                // =============================================================
-                // Inga irundha "ChangePassword" redirect'ah neekittom.
-                // EPPODHUME Dashboard'ku thaan anuppum. Anga thaan popup varum.
                 return user.Role switch
                 {
                     "Admin" => RedirectToAction("Dashboard", "Admin"),
@@ -133,6 +128,7 @@ namespace Car_Rental.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData["SuccessMessage"] = "✅ You have been logged out successfully.";
             return RedirectToAction("Home", "Guest");
         }
     }

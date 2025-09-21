@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using Car_Rental.Enum;
+﻿using Car_Rental.Enum;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

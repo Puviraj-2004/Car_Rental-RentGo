@@ -3,10 +3,6 @@ using Car_Rental.Enum;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Car_Rental.Controllers
 {

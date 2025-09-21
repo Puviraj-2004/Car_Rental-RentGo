@@ -2,9 +2,9 @@
 {
     public enum CarStatus
     {
-        Available,        
-        Booked,           
-        UnderMaintenance, 
-        NotAvailable      
+        Available,
+        Booked,
+        UnderMaintenance,
+        NotAvailable
     }
 }

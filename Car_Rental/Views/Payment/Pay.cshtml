@@ -104,44 +104,92 @@
 
                         <!-- Card Details (shown when card payment is selected) -->
                         <div id="cardDetails" style="display: none;">
-                            <h5>Card Details</h5>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Card Holder Name</label>
-                                        <input type="text" name="cardHolderName" class="form-control" placeholder="John Doe">
+                            @if (ViewBag.SavedCards != null && ((List<Car_Rental.Models.Entities.Payment>)ViewBag.SavedCards).Any())
+                            {
+                                <h5>Saved Cards</h5>
+                                <div class="row mb-4">
+                                    @foreach (var savedCard in (List<Car_Rental.Models.Entities.Payment>)ViewBag.SavedCards)
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card saved-card" onclick="selectSavedCard(@savedCard.PaymentId, '@savedCard.CardType', '@savedCard.CardLastFourDigits', '@savedCard.CardHolderName')">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1">@savedCard.CardType</h6>
+                                                            <p class="text-muted mb-0">**** **** **** @savedCard.CardLastFourDigits</p>
+                                                            <small class="text-muted">@savedCard.CardHolderName</small>
+                                                        </div>
+                                                        <div>
+                                                            <i class="fas fa-credit-card fa-2x text-primary"></i>
+                                                            <input type="radio" name="savedCardId" value="@savedCard.PaymentId" class="form-check-input ms-2">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="text-center mb-3">
+                                    <button type="button" class="btn btn-outline-primary" onclick="showNewCardForm()">
+                                        <i class="fas fa-plus me-2"></i>Use New Card
+                                    </button>
+                                </div>
+                            }
+
+                            <div id="newCardForm" style="@(ViewBag.SavedCards != null && ((List<Car_Rental.Models.Entities.Payment>)ViewBag.SavedCards).Any() ? "display: none;" : "")">
+                                <h5>@(ViewBag.SavedCards != null && ((List<Car_Rental.Models.Entities.Payment>)ViewBag.SavedCards).Any() ? "New Card Details" : "Card Details")</h5>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Holder Name</label>
+                                            <input type="text" name="cardHolderName" class="form-control" placeholder="John Doe">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="mb-3">
-                                        <label class="form-label">Card Number</label>
-                                        <input type="text" name="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Number</label>
+                                            <input type="text" name="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">CVV</label>
+                                            <input type="text" name="cvv" class="form-control" placeholder="123" maxlength="4">
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">CVV</label>
-                                        <input type="text" name="cvv" class="form-control" placeholder="123" maxlength="4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Expiry Date</label>
+                                            <input type="text" name="expiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
+                                        </div>
                                     </div>
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check mt-4">
+                                                    <input class="form-check-input" type="checkbox" name="saveCard" value="true" id="saveCard">
+                                                    <label class="form-check-label" for="saveCard">
+                                                        Save this card for future use
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Expiry Date</label>
-                                        <input type="text" name="expiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
-                                    </div>
+                                
+                                <!-- Demo Card Info -->
+                                <div class="alert alert-info">
+                                    <h6>Demo Card Details (for testing):</h6>
+                                    <p><strong>Card Number:</strong> 4111 1111 1111 1111<br>
+                                    <strong>Expiry:</strong> 12/25<br>
+                                    <strong>CVV:</strong> 123</p>
                                 </div>
-                            </div>
-                            
-                            <!-- Demo Card Info -->
-                            <div class="alert alert-info">
-                                <h6>Demo Card Details (for testing):</h6>
-                                <p><strong>Card Number:</strong> 4111 1111 1111 1111<br>
-                                <strong>Expiry:</strong> 12/25<br>
-                                <strong>CVV:</strong> 123</p>
                             </div>
                         </div>
 
@@ -222,6 +270,45 @@
             payButton.disabled = false;
         }
 
+        function selectSavedCard(cardId, cardType, lastFour, holderName) {
+            // Clear all saved card selections
+            document.querySelectorAll('.saved-card').forEach(card => {
+                card.classList.remove('border-primary');
+            });
+            
+            // Select current card
+            event.currentTarget.classList.add('border-primary');
+            document.querySelector(`input[name="savedCardId"][value="${cardId}"]`).checked = true;
+            
+            // Hide new card form
+            document.getElementById('newCardForm').style.display = 'none';
+            
+            // Clear new card form inputs
+            clearNewCardForm();
+        }
+
+        function showNewCardForm() {
+            // Clear saved card selections
+            document.querySelectorAll('.saved-card').forEach(card => {
+                card.classList.remove('border-primary');
+            });
+            document.querySelectorAll('input[name="savedCardId"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            // Show new card form
+            document.getElementById('newCardForm').style.display = 'block';
+        }
+
+        function clearNewCardForm() {
+            document.querySelector('input[name="cardHolderName"]').value = '';
+            document.querySelector('input[name="cardNumber"]').value = '';
+            document.querySelector('input[name="cvv"]').value = '';
+            document.querySelector('input[name="expiryDate"]').value = '';
+            const saveCardCheckbox = document.querySelector('input[name="saveCard"]');
+            if (saveCardCheckbox) saveCardCheckbox.checked = false;
+        }
+
         // Format card number input
         document.addEventListener('DOMContentLoaded', function() {
             const cardNumberInput = document.querySelector('input[name="cardNumber"]');
@@ -248,16 +335,19 @@
     </script>
 
     <style>
-        .payment-method {
+        .payment-method, .saved-card {
             cursor: pointer;
             transition: all 0.3s;
         }
-        .payment-method:hover {
+        .payment-method:hover, .saved-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .payment-method.border-primary {
+        .payment-method.border-primary, .saved-card.border-primary {
             border: 2px solid #007bff !important;
+        }
+        .saved-card {
+            border: 1px solid #dee2e6;
         }
     </style>
 }

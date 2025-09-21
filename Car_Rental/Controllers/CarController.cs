@@ -1,12 +1,9 @@
-﻿using Car_Rental.Data;
+using Car_Rental.Data;
 using Car_Rental.Enum;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Car_Rental.Controllers
 {
@@ -143,29 +140,37 @@ namespace Car_Rental.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCarDetails(int id)
         {
-            var car = await _context.Cars
-                .Where(c => c.CarId == id)
-                .Select(c => new
-                {
-                    carId = c.CarId,
-                    imageUrl = c.ImageUrl,
-                    brand = c.Brand,
-                    model = c.Model,
-                    year = c.Year,
-                    rentalPricePerDay = c.RentalPricePerDay,
-                    offerPercentage = c.OfferPercentage,
-                    offerAmount = c.OfferAmount,
-                    fuelType = c.FuelType.ToString(),
-                    transmission = c.Transmission.ToString(),
-                    rating = c.Rating,
-                    numberOfSeats = c.NumberOfSeats,
-                    isAirConditioned = c.IsAirConditioned,
-                    mileage = c.Mileage
-                })
-                .FirstOrDefaultAsync();
-
+            var car = await _context.Cars.FindAsync(id);
             if (car == null) return NotFound();
-            return Json(car);
+
+            // Calculate average rating from reviews
+            var reviews = await _context.Reviews
+                .Where(r => r.CarId == id)
+                .ToListAsync();
+
+            var averageRating = reviews.Any() ? Math.Round(reviews.Average(r => r.Rating), 1) : 0;
+            var totalReviews = reviews.Count;
+
+            var carDetails = new
+            {
+                carId = car.CarId,
+                imageUrl = car.ImageUrl,
+                brand = car.Brand,
+                model = car.Model,
+                year = car.Year,
+                rentalPricePerDay = car.RentalPricePerDay,
+                offerPercentage = car.OfferPercentage,
+                offerAmount = car.OfferAmount,
+                fuelType = car.FuelType.ToString(),
+                transmission = car.Transmission.ToString(),
+                rating = averageRating,
+                totalReviews = totalReviews,
+                numberOfSeats = car.NumberOfSeats,
+                isAirConditioned = car.IsAirConditioned,
+                mileage = car.Mileage
+            };
+
+            return Json(carDetails);
         }
 
 
@@ -242,7 +247,8 @@ namespace Car_Rental.Controllers
                             c.Status != CarStatus.UnderMaintenance &&
                             c.CarId != currentCarId && // Exclude the current car
                             !unavailableCarIds.Contains(c.CarId))
-                .Select(c => new { // Select only the data we need for the modal
+                .Select(c => new
+                { // Select only the data we need for the modal
                     c.CarId,
                     c.Brand,
                     c.Model,

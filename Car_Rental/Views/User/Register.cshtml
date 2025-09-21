@@ -1,4 +1,4 @@
-﻿@model Car_Rental.Models.Entities.User
+@model Car_Rental.Models.Entities.User
 
 @{
     ViewData["Title"] = "Create Account";
@@ -230,28 +230,18 @@
 
                             <!-- Phone Number Input -->
                             <div class="mb-3">
-                                <label asp-for="PhoneNumber" class="form-label"></label>
-                                <input asp-for="PhoneNumber" class="form-control-glass" placeholder="e.g., 0712345678" />
-                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                            </div>
 
-                            <!-- Password Input -->
-                            <div class="mb-3">
-                                <label asp-for="Password" class="form-label"></label>
-                                <input asp-for="Password" type="password" class="form-control-glass" placeholder="Choose a strong password" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
-                            </div>
+        /* Keela irukkum 'Sign In' link */
+        .footer-text {
+            text-align: center;
+            margin-top: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
 
-                            <!-- Confirm Password Input -->
-                            <div class="mb-4">
-                                <label class="form-label">Confirm Password</label>
-                                <input type="password" name="confirmPassword" class="form-control-glass" placeholder="Re-enter password" />
-                            </div>
-
-                            <!-- Submit Button -->
-                            <div class="d-grid">
-                                <button type="submit" class="btn-submit-custom">Create Account</button>
-                            </div>
+            .footer-text a {
+                color: #fff;
+                font-weight: 600;
+                text-decoration: none;
                         </form>
 
                         <!-- Footer with a link to the Login page -->
@@ -269,5 +259,21 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+    function togglePassword(inputId, button) {
+        const passwordInput = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+    </script>
 }
 ```

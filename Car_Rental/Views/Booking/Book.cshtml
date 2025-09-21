@@ -4,14 +4,152 @@
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
-<div class="container mt-4">
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .booking-page-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .booking-card, .sidebar-card {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .booking-card-header {
+        background-color: #212529;
+        color: #fff;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #212529;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+
+        .booking-card-header h4 {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+    .booking-card-body {
+        padding: 2rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        height: calc(1.5em + 1rem + 2px);
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
+        }
+
+    .btn-submit {
+        background-color: #000;
+        color: #fff;
+        border: 1px solid #000;
+        padding: 0.75rem 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 0.25rem;
+        transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+    }
+
+        .btn-submit:hover {
+            background-color: #333;
+            border-color: #333;
+        }
+
+    .sidebar-card .card-img-top {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        max-height: 250px;
+        object-fit: cover;
+    }
+
+    .sidebar-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .sidebar-card .card-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .sidebar-card p {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .sidebar-card .price-display {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #000;
+    }
+
+    .sidebar-card .total-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .btn-change-car {
+        width: 100%;
+        padding: 0.6rem;
+        font-weight: 600;
+        border-color: #ced4da;
+        color: #495057;
+    }
+
+        .btn-change-car:hover {
+            background-color: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+    .availability-status-card .card-body {
+        padding: 1rem;
+    }
+
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .modal-header .modal-title {
+            font-weight: 600;
+        }
+
+    .modal-content {
+        border-radius: 0.5rem;
+        border: none;
+    }
+</style>
+
+<div class="container booking-page-container">
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <h4><i class="fas fa-calendar-check"></i> Complete Your Booking</h4>
+        <div class="col-lg-8">
+            <div class="booking-card">
+                <div class="booking-card-header">
+                    <h4><i class="fas fa-car-side me-2"></i> Your Booking Details</h4>
                 </div>
-                <div class="card-body">
+                <div class="booking-card-body">
                     @if (TempData["ErrorMessage"] != null)
                     {
                         <div class="alert alert-danger">
@@ -22,69 +160,90 @@
                     <form asp-controller="Booking" asp-action="Book" method="post">
                         @Html.AntiForgeryToken()
                         
-                        <!-- Hidden fields -->
                         <input type="hidden" asp-for="CarID" />
-                        <input type="hidden" asp-for="PickupDate" />
-                        <input type="hidden" asp-for="ReturnDate" />
-
+                        
+                        <h5><i class="fas fa-calendar-alt me-2"></i> Rental Period</h5>
+                        <hr class="mt-2 mb-4">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Driver License Number *</label>
-                                    <input type="text" asp-for="DriverLicenseNumber" class="form-control" required>
-                                    <span asp-validation-for="DriverLicenseNumber" class="text-danger"></span>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Pickup Date *</label>
+                                <input type="date" asp-for="PickupDate" class="form-control" id="pickupDate" required>
+                                <span asp-validation-for="PickupDate" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">License Expiry Date *</label>
-                                    <input type="date" asp-for="LicenseExpiryDate" class="form-control" required>
-                                    <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Return Date *</label>
+                                <input type="date" asp-for="ReturnDate" class="form-control" id="returnDate" required>
+                                <span asp-validation-for="ReturnDate" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <h5 class="mt-4"><i class="fas fa-id-card me-2"></i> Driver Information</h5>
+                        <hr class="mt-2 mb-4">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">National ID/Passport *</label>
-                                    <input type="text" asp-for="NIC" class="form-control" required>
-                                    <span asp-validation-for="NIC" class="text-danger"></span>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Driver License Number *</label>
+                                <input type="text" asp-for="DriverLicenseNumber" class="form-control" required>
+                                <span asp-validation-for="DriverLicenseNumber" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Insurance Plan</label>
-                                    <select asp-for="InsuranceID" class="form-select">
-                                        <option value="">No Insurance</option>
-                                        @if (ViewBag.Insurances != null)
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">License Expiry Date *</label>
+                                <input type="date" asp-for="LicenseExpiryDate" class="form-control" required>
+                                <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">National ID/Passport *</label>
+                                <input type="text" asp-for="NIC" class="form-control" required>
+                                <span asp-validation-for="NIC" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Insurance Plan</label>
+                                <select asp-for="InsuranceID" class="form-select">
+                                    <option value="">No Insurance</option>
+                                    @if (ViewBag.Insurances != null)
+                                    {
+                                        @foreach (var insurance in ViewBag.Insurances)
                                         {
-                                            @foreach (var insurance in ViewBag.Insurances)
-                                            {
-                                                <option value="@insurance.InsuranceID">@insurance.Name - @insurance.CoveragePercentage% coverage</option>
-                                            }
+                                            <option value="@insurance.InsuranceID">@insurance.Name - @insurance.CoveragePercentage% coverage</option>
                                         }
-                                    </select>
-                                </div>
+                                    }
+                                </select>
                             </div>
                         </div>
 
                         <div class="text-center mt-4">
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <button type="submit" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-credit-card"></i> Proceed to Payment
+                                <button type="submit" class="btn btn-submit btn-lg w-100">
+                                    <i class="fas fa-credit-card me-2"></i> Proceed to Payment
                                 </button>
                             }
                             else
                             {
-                                <button type="button" class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#guestDetailsModal">
-                                    <i class="fas fa-user-plus"></i> Continue as Guest
+                                <button type="button" class="btn btn-submit btn-lg w-100" data-bs-toggle="modal" data-bs-target="#guestDetailsModal">
+                                    <i class="fas fa-user-plus me-2"></i> Continue as Guest
                                 </button>
                             }
                         </div>
 
-                        <!-- Guest Details Modal -->
+                        <!-- Modals -->
+                        <div class="modal fade" id="changeCarModal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Change Your Car</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="availableCarsList" class="row"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="modal fade" id="guestDetailsModal" tabindex="-1">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -108,7 +267,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-warning">
+                                        <button type="submit" class="btn btn-submit">
                                             <i class="fas fa-credit-card"></i> Proceed to Payment
                                         </button>
                                     </div>
@@ -120,26 +279,43 @@
             </div>
         </div>
 
-        <!-- Car Details Sidebar -->
-        <div class="col-md-4">
+        <div class="col-lg-4">
             @if (Model.Car != null)
             {
-                <div class="card">
+                <div class="sidebar-card">
                     <img src="@(Model.Car.ImageUrl ?? "/images/default-car.jpg")" class="card-img-top" alt="Car Image">
                     <div class="card-body">
                         <h5 class="card-title">@Model.Car.Brand @Model.Car.Model</h5>
                         <p><strong>Year:</strong> @Model.Car.Year</p>
-                        <p><strong>Pickup:</strong> @Model.PickupDate.ToString("dd MMM yyyy")</p>
-                        <p><strong>Return:</strong> @Model.ReturnDate.ToString("dd MMM yyyy")</p>
-                        <p><strong>Duration:</strong> @((Model.ReturnDate - Model.PickupDate).Days) days</p>
                         <hr>
-                        <h4 class="text-warning text-center">$@Model.Car.RentalPricePerDay / day</h4>
-                        <p class="text-center text-muted">
-                            Total: $@(Model.Car.RentalPricePerDay * (Model.ReturnDate - Model.PickupDate).Days)
-                        </p>
+                        <div id="selectedDates">
+                            <p><strong>Pickup:</strong> <span id="pickupDisplay">@Model.PickupDate.ToString("dd MMM yyyy")</span></p>
+                            <p><strong>Return:</strong> <span id="returnDisplay">@Model.ReturnDate.ToString("dd MMM yyyy")</span></p>
+                            <p><strong>Duration:</strong> <span id="durationDisplay">@((Model.ReturnDate - Model.PickupDate).Days) days</span></p>
+                        </div>
+                        <hr>
+                        <div class="text-center">
+                            <h4 class="price-display">$<span id="pricePerDay">@Model.Car.RentalPricePerDay</span><span style="font-size: 1rem; color: #6c757d;">/day</span></h4>
+                            <p class="total-price text-muted">
+                                Total: $<span id="totalPrice">@(Model.Car.RentalPricePerDay * (Model.ReturnDate - Model.PickupDate).Days)</span>
+                            </p>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-change-car" data-bs-toggle="modal" data-bs-target="#changeCarModal">
+                                <i class="fas fa-exchange-alt me-2"></i> Change Car
+                            </button>
+                        </div>
                     </div>
                 </div>
             }
+            <div class="sidebar-card availability-status-card">
+                <div class="card-body">
+                    <h6 class="card-title mb-0">Availability Status</h6>
+                    <div id="availabilityStatus" class="mt-2">
+                        <p class="text-success mb-0"><i class="fas fa-check-circle me-2"></i>Car is available for selected dates</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -150,13 +326,179 @@
     }
     
     <script>
-        // Set minimum date for license expiry to today
+        let currentCarId = @Model.CarID;
+        let currentCarPrice = @Model.Car.RentalPricePerDay;
+
         document.addEventListener('DOMContentLoaded', function() {
             const licenseExpiryInput = document.querySelector('input[name="LicenseExpiryDate"]');
             if (licenseExpiryInput) {
                 const today = new Date().toISOString().split('T')[0];
                 licenseExpiryInput.setAttribute('min', today);
             }
+
+            const pickupInput = document.getElementById('pickupDate');
+            const returnInput = document.getElementById('returnDate');
+            
+            if (pickupInput && returnInput) {
+                const today = new Date().toISOString().split('T')[0];
+                pickupInput.setAttribute('min', today);
+                
+                pickupInput.addEventListener('change', function() {
+                    const pickupDate = new Date(this.value);
+                    const minReturnDate = new Date(pickupDate);
+                    minReturnDate.setDate(minReturnDate.getDate() + 1);
+                    returnInput.setAttribute('min', minReturnDate.toISOString().split('T')[0]);
+                    
+                    if (returnInput.value && new Date(returnInput.value) <= pickupDate) {
+                        returnInput.value = minReturnDate.toISOString().split('T')[0];
+                    }
+                    
+                    checkAvailabilityAndUpdateUI();
+                });
+
+                returnInput.addEventListener('change', function() {
+                    checkAvailabilityAndUpdateUI();
+                });
+            }
         });
+
+        function checkAvailabilityAndUpdateUI() {
+            const pickupDate = document.getElementById('pickupDate').value;
+            const returnDate = document.getElementById('returnDate').value;
+            
+            if (pickupDate && returnDate) {
+                updateDateDisplay(pickupDate, returnDate);
+                checkCarAvailability(currentCarId, pickupDate, returnDate);
+            }
+        }
+
+        function updateDateDisplay(pickupDate, returnDate) {
+            const pickup = new Date(pickupDate);
+            const returnD = new Date(returnDate);
+            const duration = Math.ceil((returnD - pickup) / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('pickupDisplay').textContent = pickup.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+            document.getElementById('returnDisplay').textContent = returnD.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+            document.getElementById('durationDisplay').textContent = duration + ' days';
+            document.getElementById('totalPrice').textContent = (currentCarPrice * duration).toFixed(2);
+        }
+
+        function checkCarAvailability(carId, pickupDate, returnDate) {
+            const formData = new FormData();
+            formData.append('carId', carId);
+            formData.append('pickupDate', pickupDate);
+            formData.append('returnDate', returnDate);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            fetch('/Booking/CheckAvailability', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('availabilityStatus');
+                if (data.isAvailable) {
+                    statusDiv.innerHTML = '<p class="text-success mb-0"><i class="fas fa-check-circle me-2"></i> Car is available for selected dates</p>';
+                } else {
+                    statusDiv.innerHTML = `
+                        <p class="text-danger mb-2"><i class="fas fa-times-circle me-2"></i> Selected car is not available for these dates</p>
+                        <button type="button" class="btn btn-sm btn-dark" onclick="loadAvailableCars()">
+                            <i class="fas fa-search me-2"></i> View Available Cars
+                        </button>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking availability:', error);
+            });
+        }
+
+        function loadAvailableCars() {
+            const pickupDate = document.getElementById('pickupDate').value;
+            const returnDate = document.getElementById('returnDate').value;
+            
+            if (!pickupDate || !returnDate) {
+                alert('Please select both pickup and return dates');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('pickupDate', pickupDate);
+            formData.append('returnDate', returnDate);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            fetch('/Booking/GetAvailableCars', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayAvailableCars(data.cars);
+                const modal = new bootstrap.Modal(document.getElementById('changeCarModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error loading available cars:', error);
+                alert('Error loading available cars. Please try again.');
+            });
+        }
+
+        function displayAvailableCars(cars) {
+            const carsList = document.getElementById('availableCarsList');
+            carsList.innerHTML = '';
+            
+            if (cars.length === 0) {
+                carsList.innerHTML = '<div class="col-12"><p class="text-center">No cars available for selected dates.</p></div>';
+                return;
+            }
+
+            cars.forEach(car => {
+                const duration = Math.ceil((new Date(document.getElementById('returnDate').value) - new Date(document.getElementById('pickupDate').value)) / (1000 * 60 * 60 * 24));
+                const totalPrice = (car.rentalPricePerDay * duration).toFixed(2);
+                
+                const carCard = `
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <img src="${car.imageUrl}" class="card-img-top" alt="Car Image" style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">${car.brand} ${car.model}</h6>
+                                <p class="card-text">
+                                    <small>Year: ${car.year}</small><br>
+                                    <small>$${car.rentalPricePerDay}/day</small><br>
+                                    <strong>Total: $${totalPrice}</strong>
+                                </p>
+                                <button type="button" class="btn btn-dark btn-sm mt-auto" onclick="selectCar(${car.carId}, '${car.brand} ${car.model}', ${car.rentalPricePerDay})">
+                                    Select This Car
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                carsList.innerHTML += carCard;
+            });
+        }
+
+        function selectCar(carId, carName, pricePerDay) {
+            document.querySelector('input[name="CarID"]').value = carId;
+            currentCarId = carId;
+            currentCarPrice = pricePerDay;
+            
+            const carTitle = document.querySelector('.card-title');
+            if (carTitle) {
+                carTitle.textContent = carName;
+            }
+            
+            const priceDisplay = document.getElementById('pricePerDay');
+            if (priceDisplay) {
+                priceDisplay.textContent = pricePerDay;
+            }
+            
+            updateDateDisplay(document.getElementById('pickupDate').value, document.getElementById('returnDate').value);
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('changeCarModal'));
+            modal.hide();
+            
+            checkCarAvailability(carId, document.getElementById('pickupDate').value, document.getElementById('returnDate').value);
+        }
     </script>
 }

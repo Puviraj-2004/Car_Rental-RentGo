@@ -2,8 +2,6 @@
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // Add this for async operations
-using System.Linq; // Add this for LINQ queries
-using System.Threading.Tasks; // Add this for async operations
 
 namespace Car_Rental.Controllers
 {

@@ -4,194 +4,300 @@
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
-<div class="container mt-4">
+<style>
+    body {
+        background-color: #f9fafb; /* Lighter, softer background */
+    }
+
+    .booking-container {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+
+    .booking-document {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem; /* Softer radius */
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        overflow: hidden;
+    }
+
+    /* --- Summary Panel --- */
+    .summary-panel {
+        display: flex;
+        align-items: center;
+        padding: 2rem;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .summary-panel img {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-right: 1.5rem;
+        }
+
+    .summary-details h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+
+    .booking-ref-code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1rem;
+        color: #6b7280;
+        background-color: #f3f4f6;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+
+    .status-tag {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 0.75rem;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+        .status-tag.booked {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-tag.cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-tag.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+
+    /* --- Main Details --- */
+    .document-body {
+        padding: 2.5rem;
+    }
+
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+    }
+
+        .section-header i {
+            color: #6b7280;
+            margin-right: 0.75rem;
+        }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.75rem;
+    }
+
+    .detail-item dt { /* Definition Term - Label */
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-item dd { /* Definition Details - Value */
+        font-size: 1rem;
+        font-weight: 500;
+        color: #374151;
+        margin-left: 0;
+    }
+
+    .total-price dd {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    /* --- Sidebar Actions --- */
+    .action-panel {
+        position: sticky;
+        top: 2rem;
+    }
+
+    .action-card {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-card-header {
+        font-weight: 600;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+    }
+
+        .action-card-header i {
+            margin-right: 0.75rem;
+            color: #4b5563;
+        }
+
+    .action-card-body {
+        padding: 1.25rem;
+    }
+</style>
+
+<div class="container booking-container">
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h4><i class="fas fa-calendar-alt"></i> Booking Details</h4>
+        <!-- Main Booking Document -->
+        <div class="col-lg-8">
+            <div class="booking-document">
+                <!-- Header / Summary Panel -->
+                <div class="summary-panel">
+                    <img src="@(Model.Car.ImageUrl ?? "/images/default-car.jpg")" alt="Car Image" />
+                    <div class="flex-grow-1">
+                        <h2>@Model.Car?.Brand @Model.Car?.Model</h2>
+                        <p class="mb-2">Booking Reference: <strong class="booking-ref-code">@Model.BookingReference</strong></p>
+                    </div>
+                    <div>
+                        <span class="status-tag @(Model.Status == Car_Rental.Enum.BookingStatus.Booked ? "booked" : Model.Status == Car_Rental.Enum.BookingStatus.Cancelled ? "cancelled" : "pending")">
+                            @Model.Status
+                        </span>
+                    </div>
                 </div>
-                <div class="card-body">
+
+                <!-- Document Body -->
+                <div class="document-body">
                     @if (TempData["ErrorMessage"] != null)
                     {
-                        <div class="alert alert-danger">
-                            @TempData["ErrorMessage"]
-                        </div>
+                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
                     }
                     @if (TempData["SuccessMessage"] != null)
                     {
-                        <div class="alert alert-success">
-                            @TempData["SuccessMessage"]
-                        </div>
+                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
                     }
 
-                    <!-- Booking Status -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h5>Booking Reference</h5>
-                                    <h3 class="text-primary">@Model.BookingReference</h3>
-                                </div>
-                            </div>
+                    <!-- Rental Period & Cost -->
+                    <h5 class="section-header"><i class="fas fa-calendar-alt"></i>Rental Period & Cost</h5>
+                    <dl class="details-grid">
+                        <div class="detail-item">
+                            <dt>Pickup Date</dt>
+                            <dd>@Model.PickupDate.ToString("dddd, dd MMMM yyyy")</dd>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h5>Status</h5>
-                                    <h3 class="@(Model.Status == Car_Rental.Enum.BookingStatus.Booked ? "text-success" : 
-                                                Model.Status == Car_Rental.Enum.BookingStatus.Cancelled ? "text-danger" : "text-warning")">
-                                        @Model.Status
-                                    </h3>
-                                </div>
-                            </div>
+                        <div class="detail-item">
+                            <dt>Return Date</dt>
+                            <dd>@Model.ReturnDate.ToString("dddd, dd MMMM yyyy")</dd>
                         </div>
-                    </div>
+                        <div class="detail-item">
+                            <dt>Duration</dt>
+                            <dd>@((Model.ReturnDate - Model.PickupDate).Days) days</dd>
+                        </div>
+                        <div class="detail-item total-price">
+                            <dt>Total Amount Paid</dt>
+                            <dd>$@Model.TotalPrice</dd>
+                        </div>
+                    </dl>
 
-                    <!-- Booking Information -->
-                    <h5>Booking Information</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Car:</strong></td>
-                                    <td>@Model.Car?.Brand @Model.Car?.Model (@Model.Car?.Year)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Pickup Date:</strong></td>
-                                    <td>@Model.PickupDate.ToString("dddd, dd MMMM yyyy")</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Return Date:</strong></td>
-                                    <td>@Model.ReturnDate.ToString("dddd, dd MMMM yyyy")</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Duration:</strong></td>
-                                    <td>@((Model.ReturnDate - Model.PickupDate).Days) days</td>
-                                </tr>
-                            </table>
+                    <!-- Driver & Customer Information -->
+                    <h5 class="section-header mt-5"><i class="fas fa-user-circle"></i>Driver & Customer Information</h5>
+                    <dl class="details-grid">
+                        <div class="detail-item">
+                            <dt>Customer Name</dt>
+                            <dd>@(Model.User?.FullName ?? Model.Guest?.FullName)</dd>
                         </div>
-                        <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Customer:</strong></td>
-                                    <td>@(Model.User?.FullName ?? Model.Guest?.FullName)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Email:</strong></td>
-                                    <td>@(Model.User?.Email ?? Model.Guest?.Email)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Phone:</strong></td>
-                                    <td>@(Model.User?.PhoneNumber ?? Model.Guest?.PhoneNumber)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Total Amount:</strong></td>
-                                    <td><strong class="text-success">$@Model.TotalPrice</strong></td>
-                                </tr>
-                            </table>
+                        <div class="detail-item">
+                            <dt>Email Address</dt>
+                            <dd>@(Model.User?.Email ?? Model.Guest?.Email)</dd>
                         </div>
-                    </div>
-
-                    <!-- Driver Information -->
-                    <h5 class="mt-4">Driver Information</h5>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <p><strong>License Number:</strong><br>@Model.DriverLicenseNumber</p>
+                        <div class="detail-item">
+                            <dt>Phone Number</dt>
+                            <dd>@(Model.User?.PhoneNumber ?? Model.Guest?.PhoneNumber)</dd>
                         </div>
-                        <div class="col-md-4">
-                            <p><strong>License Expiry:</strong><br>@Model.LicenseExpiryDate.ToString("dd MMM yyyy")</p>
+                        <div class="detail-item">
+                            <dt>Driver License No.</dt>
+                            <dd>@Model.DriverLicenseNumber</dd>
                         </div>
-                        <div class="col-md-4">
-                            <p><strong>ID/Passport:</strong><br>@Model.NIC</p>
+                        <div class="detail-item">
+                            <dt>License Expiry</dt>
+                            <dd>@Model.LicenseExpiryDate.ToString("dd MMMM yyyy")</dd>
                         </div>
-                    </div>
+                        <div class="detail-item">
+                            <dt>National ID / Passport</dt>
+                            <dd>@Model.NIC</dd>
+                        </div>
+                    </dl>
 
                     @if (Model.Insurance != null)
                     {
-                        <h5 class="mt-4">Insurance Coverage</h5>
-                        <p><strong>Plan:</strong> @Model.Insurance.Name</p>
-                        <p><strong>Coverage:</strong> @Model.Insurance.CoveragePercentage%</p>
+                        <h5 class="section-header mt-5"><i class="fas fa-shield-alt"></i>Insurance Coverage</h5>
+                        <dl class="details-grid">
+                            <div class="detail-item">
+                                <dt>Plan Name</dt>
+                                <dd>@Model.Insurance.Name</dd>
+                            </div>
+                            <div class="detail-item">
+                                <dt>Coverage</dt>
+                                <dd>@Model.Insurance.CoveragePercentage%</dd>
+                            </div>
+                        </dl>
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Actions Sidebar -->
-        <div class="col-md-4">
-            <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-tools"></i> Quick Actions</h5>
+        <!-- Sidebar with Actions -->
+        <div class="col-lg-4">
+            <div class="action-panel">
+                <!-- Quick Actions -->
+                <div class="action-card">
+                    <div class="action-card-header"><i class="fas fa-tools"></i>Quick Actions</div>
+                    <div class="action-card-body">
+                        <button onclick="window.print()" class="btn btn-outline-dark w-100 mb-2"><i class="fas fa-print me-2"></i> Print Details</button>
+                        <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-outline-secondary w-100"><i class="fas fa-arrow-left me-2"></i> My Bookings</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <button onclick="window.print()" class="btn btn-outline-primary btn-sm w-100 mb-2">
-                        <i class="fas fa-print"></i> Print Details
-                    </button>
-                    
-                    <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-outline-secondary btn-sm w-100 mb-2">
-                        <i class="fas fa-arrow-left"></i> Back to Search
-                    </a>
-                </div>
-            </div>
 
-            <!-- Extend Booking (only if not cancelled and future booking) -->
-            @if (Model.Status != Car_Rental.Enum.BookingStatus.Cancelled && Model.PickupDate > DateTime.Now)
-            {
-                <div class="card mt-3">
-                    <div class="card-header bg-success text-white">
-                        <h6><i class="fas fa-calendar-plus"></i> Extend Rental</h6>
+                <!-- Extend Booking -->
+                @if (Model.Status != Car_Rental.Enum.BookingStatus.Cancelled && Model.PickupDate > DateTime.Now)
+                {
+                    <div class="action-card">
+                        <div class="action-card-header"><i class="fas fa-calendar-plus"></i>Extend Rental</div>
+                        <div class="action-card-body">
+                            <form asp-controller="Booking" asp-action="ExtendBooking" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="bookingId" value="@Model.BookingID" />
+                                <input type="hidden" name="bookingReference" value="@Model.BookingReference" />
+                                <div class="mb-3">
+                                    <label class="form-label small">New Return Date</label>
+                                    <input type="date" name="newReturnDate" class="form-control" min="@Model.ReturnDate.ToString("yyyy-MM-dd")" required>
+                                </div>
+                                <button type="submit" class="btn btn-dark w-100">Confirm Extension</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form asp-controller="Booking" asp-action="ExtendBooking" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="bookingId" value="@Model.BookingID" />
-                            <input type="hidden" name="bookingReference" value="@Model.BookingReference" />
-                            
-                            <div class="mb-3">
-                                <label class="form-label">New Return Date</label>
-                                <input type="date" name="newReturnDate" class="form-control" 
-                                       min="@Model.ReturnDate.ToString("yyyy-MM-dd")" required>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-success btn-sm w-100">
-                                <i class="fas fa-calendar-plus"></i> Extend Booking
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            }
+                }
 
-            <!-- Cancel Booking (only if not cancelled and more than 24 hours before pickup) -->
-            @if (Model.Status != Car_Rental.Enum.BookingStatus.Cancelled && Model.PickupDate > DateTime.Now.AddHours(24))
-            {
-                <div class="card mt-3">
-                    <div class="card-header bg-danger text-white">
-                        <h6><i class="fas fa-times-circle"></i> Cancel Booking</h6>
+                <!-- Cancel Booking -->
+                @if (Model.Status != Car_Rental.Enum.BookingStatus.Cancelled && Model.PickupDate > DateTime.Now.AddHours(24))
+                {
+                    <div class="action-card">
+                        <div class="action-card-header"><i class="fas fa-times-circle"></i>Cancel Booking</div>
+                        <div class="action-card-body">
+                            <p class="small text-muted mb-3">Cancellable up to 24 hours before pickup.</p>
+                            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="fas fa-trash-alt me-2"></i>Request Cancellation</button>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p class="small text-muted">
-                            You can cancel this booking up to 24 hours before pickup time.
-                        </p>
-                        
-                        <button type="button" class="btn btn-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#cancelModal">
-                            <i class="fas fa-times-circle"></i> Cancel Booking
-                        </button>
-                    </div>
-                </div>
-            }
-
-            <!-- Pickup Information -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6><i class="fas fa-map-marker-alt"></i> Pickup Location</h6>
-                </div>
-                <div class="card-body">
-                    <p class="small mb-1"><strong>RentGo Car Rental</strong></p>
-                    <p class="small mb-1">123 Main Street, Downtown</p>
-                    <p class="small mb-1">City, State 12345</p>
-                    <p class="small mb-0"><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
-                </div>
+                }
             </div>
         </div>
     </div>
@@ -199,8 +305,8 @@
 
 <!-- Cancel Confirmation Modal -->
 <div class="modal fade" id="cancelModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 0.75rem;">
             <div class="modal-header">
                 <h5 class="modal-title">Confirm Cancellation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -208,11 +314,11 @@
             <div class="modal-body">
                 <p>Are you sure you want to cancel this booking?</p>
                 <p class="text-danger"><strong>This action cannot be undone.</strong></p>
-                <p class="small text-muted">
-                    Booking Reference: <strong>@Model.BookingReference</strong><br>
-                    Car: <strong>@Model.Car?.Brand @Model.Car?.Model</strong><br>
-                    Pickup Date: <strong>@Model.PickupDate.ToString("dd MMM yyyy")</strong>
-                </p>
+                <div class="alert alert-secondary small">
+                    <strong>Ref:</strong> @Model.BookingReference<br>
+                    <strong>Car:</strong> @Model.Car?.Brand @Model.Car?.Model<br>
+                    <strong>Pickup:</strong> @Model.PickupDate.ToString("dd MMM yyyy")
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Booking</button>
@@ -220,9 +326,7 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="bookingId" value="@Model.BookingID" />
                     <input type="hidden" name="bookingReference" value="@Model.BookingReference" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-times-circle"></i> Yes, Cancel Booking
-                    </button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-times-circle me-2"></i> Yes, Cancel Booking</button>
                 </form>
             </div>
         </div>
@@ -231,7 +335,6 @@
 
 @section Scripts {
     <script>
-        // Set minimum date for extend booking
         document.addEventListener('DOMContentLoaded', function() {
             const extendDateInput = document.querySelector('input[name="newReturnDate"]');
             if (extendDateInput) {
@@ -242,14 +345,23 @@
             }
         });
     </script>
-
     <style>
         @@media print {
-            .btn, .card-header, .modal {
-                display: none !important;
+            body * {
+                visibility: hidden;
             }
-            .container {
-                max-width: 100% !important;
+
+            .booking-document, .booking-document * {
+                visibility: visible;
+            }
+
+            .booking-document {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
             }
         }
     </style>

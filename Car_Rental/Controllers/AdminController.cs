@@ -1,14 +1,11 @@
-﻿using Car_Rental.Data;
+using Car_Rental.Data;
 using Car_Rental.Enum;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System; // DateTime-க்கு தேவை
 using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace Car_Rental.Controllers
 {
@@ -67,13 +64,18 @@ namespace Car_Rental.Controllers
                     }
                 }
 
-                // 3. INVOICE TABLE-ஐப் பயன்படுத்தி வருமானக் கணக்கீடுகள்
-                var totalRevenue = await _context.Invoices.Where(i => i.IsPaid).SumAsync(i => i.TotalAmount);
+                // 3. Calculate revenue from paid bookings
+                var paidBookings = await _context.Bookings
+                    .Include(b => b.Payments)
+                    .Where(b => b.Payments != null && b.Payments.Any(p => p.Status == PaymentStatus.Paid))
+                    .ToListAsync();
+
+                var totalRevenue = paidBookings.Sum(b => b.TotalPrice);
                 var today = DateTime.Today;
                 var startOfMonth = new DateTime(today.Year, today.Month, 1);
-                var currentMonthRevenue = await _context.Invoices
-                    .Where(i => i.IsPaid && i.InvoiceDate >= startOfMonth)
-                    .SumAsync(i => i.TotalAmount);
+                var currentMonthRevenue = paidBookings
+                    .Where(b => b.BookingDate >= startOfMonth)
+                    .Sum(b => b.TotalPrice);
 
                 // 4. நான்கு கார் நிலைகளுக்கும் தனித்தனியாக கணக்கீடு
                 var availableCarsCount = await _context.Cars.CountAsync(c => c.Status == CarStatus.Available);
@@ -176,6 +178,117 @@ namespace Car_Rental.Controllers
             }
 
             return Json(new { success = false, message = "An error occurred. Admin user could not be found." });
+        }
+
+        // Customer Details Page
+        public async Task<IActionResult> Customers()
+        {
+            try
+            {
+                // Get all users with User role or users who have made bookings
+                var customers = await _context.Users
+                    .Include(u => u.Bookings)
+                    .Where(u => u.Role == "User" || u.Bookings.Any())
+                    .ToListAsync();
+
+                // If no customers found, get all users for debugging
+                if (!customers.Any())
+                {
+                    var allUsers = await _context.Users.ToListAsync();
+                    ViewBag.DebugMessage = $"No customers found. Total users in database: {allUsers.Count}";
+                    customers = allUsers;
+                }
+
+                return View(customers);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"Error loading customers: {ex.Message}";
+                return View(new List<User>());
+            }
+        }
+
+        // Get real-time revenue data
+        [HttpGet]
+        public async Task<JsonResult> GetRealtimeRevenue()
+        {
+            // Calculate revenue from paid bookings
+            var paidBookings = await _context.Bookings
+                .Include(b => b.Payments)
+                .Where(b => b.Payments != null && b.Payments.Any(p => p.Status == PaymentStatus.Paid))
+                .ToListAsync();
+
+            var totalRevenue = paidBookings.Sum(b => b.TotalPrice);
+
+            var today = DateTime.Today;
+            var todayRevenue = paidBookings
+                .Where(b => b.BookingDate.Date == today)
+                .Sum(b => b.TotalPrice);
+
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            var monthRevenue = paidBookings
+                .Where(b => b.BookingDate >= startOfMonth)
+                .Sum(b => b.TotalPrice);
+
+            return Json(new
+            {
+                totalRevenue = totalRevenue,
+                todayRevenue = todayRevenue,
+                monthRevenue = monthRevenue
+            });
+        }
+
+        // Get customer details for modal
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerDetails(int customerId)
+        {
+            var customer = await _context.Users
+                .Include(u => u.Bookings)
+                .ThenInclude(b => b.Payments)
+                .FirstOrDefaultAsync(u => u.UserID == customerId && u.Role == "User");
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            var totalSpent = customer.Bookings
+                .Where(b => b.Payments != null && b.Payments.Any(p => p.Status == PaymentStatus.Paid))
+                .Sum(b => b.TotalPrice);
+
+            var lastBooking = customer.Bookings
+                .OrderByDescending(b => b.BookingDate)
+                .FirstOrDefault();
+
+            var customerDetails = new
+            {
+                fullName = customer.FullName,
+                email = customer.Email,
+                phoneNumber = customer.PhoneNumber,
+                totalBookings = customer.Bookings.Count,
+                totalSpent = totalSpent,
+                lastBooking = lastBooking?.BookingDate.ToString("MMM dd, yyyy") ?? "None"
+            };
+
+            return Json(customerDetails);
+        }
+
+        // Get customer bookings page
+        [HttpGet]
+        public async Task<IActionResult> CustomerBookings(int customerId)
+        {
+            var customer = await _context.Users
+                .Include(u => u.Bookings)
+                .ThenInclude(b => b.Car)
+                .FirstOrDefaultAsync(u => u.UserID == customerId && u.Role == "User");
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.CustomerName = customer.FullName;
+            return View(customer.Bookings.OrderByDescending(b => b.BookingDate));
         }
     }
 }
