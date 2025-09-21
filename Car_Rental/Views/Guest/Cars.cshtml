@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Car_Rental.Models.Entities.Car>
+@model IEnumerable<Car_Rental.Models.Entities.Car>
 
 @{
     ViewData["Title"] = "Our Fleet";
@@ -138,7 +138,7 @@
                                 @if (isFiltered)
                                 {
                                     <!-- If dates ARE selected, the Book Now button is a direct link -->
-                                    <a href="/Booking/Booking/@car.CarId?pickupDate=@(ViewBag.PickupDate?.ToString("yyyy-MM-dd"))&returnDate=@(ViewBag.ReturnDate?.ToString("yyyy-MM-dd"))"
+                                    <a href="@Url.Action("Book", "Booking", new { carId = car.CarId, pickupDate = ViewBag.PickupDate?.ToString("yyyy-MM-dd"), returnDate = ViewBag.ReturnDate?.ToString("yyyy-MM-dd") })"
                                        class="btn btn-warning fw-bold">Book Now</a>
                                 }
                                 else
@@ -248,7 +248,7 @@
                     // --- Logic for the "Book Now" button ---
                     const pickupDate = document.getElementById('pickupDate').value;
                     const returnDate = document.getElementById('returnDate').value;
-                    let bookingUrl = `/Booking/Booking/${car.carId}`;
+                    let bookingUrl = `/Booking/Book/${car.carId}`;
                     if (pickupDate && returnDate) {
                         bookingUrl += `?pickupDate=${pickupDate}&returnDate=${returnDate}`;
                     }

@@ -1,0 +1,91 @@
+@{
+    ViewData["Title"] = "My Bookings";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-search"></i> Find My Booking</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <p class="text-muted">Enter your booking reference code to view and manage your reservation.</p>
+
+                    <form asp-controller="Booking" asp-action="FindBooking" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Booking Reference Code</label>
+                            <input type="text" name="bookingReference" class="form-control form-control-lg text-center" 
+                                   placeholder="RG20231021123456789" required style="letter-spacing: 2px; font-family: monospace;">
+                            <div class="form-text">
+                                Your booking reference starts with "RG" followed by numbers (e.g., RG20231021123456789)
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search"></i> Find My Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-question-circle"></i> Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Where can I find my booking reference?</h6>
+                    <ul class="small">
+                        <li>In your booking confirmation email</li>
+                        <li>On your payment receipt</li>
+                        <li>In your SMS confirmation message</li>
+                    </ul>
+
+                    <h6 class="mt-3">What can I do with my booking?</h6>
+                    <ul class="small">
+                        <li><i class="fas fa-eye text-info"></i> View booking details</li>
+                        <li><i class="fas fa-calendar-plus text-success"></i> Extend rental period</li>
+                        <li><i class="fas fa-times-circle text-danger"></i> Cancel booking (24h+ before pickup)</li>
+                        <li><i class="fas fa-print text-secondary"></i> Print confirmation</li>
+                    </ul>
+
+                    <div class="text-center mt-3">
+                        <p class="small text-muted">
+                            <i class="fas fa-phone"></i> Need assistance? Call us at +1 (555) 123-4567
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.querySelector('input[name="bookingReference"]');
+            
+            // Auto-uppercase and format input
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.toUpperCase();
+                e.target.value = value;
+            });
+
+            // Focus on input when page loads
+            input.focus();
+        });
+    </script>
+}

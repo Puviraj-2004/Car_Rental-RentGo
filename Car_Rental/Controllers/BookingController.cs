@@ -1,4 +1,4 @@
-﻿using Car_Rental.Data;
+using Car_Rental.Data;
 using Car_Rental.Enum;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -9,128 +9,244 @@ namespace Car_Rental.Controllers
 {
     public class BookingController : Controller
     {
-        private readonly ApplicationDbContext _context; // Assumes your DbContext is named ApplicationDbContext
+        private readonly ApplicationDbContext _context;
 
         public BookingController(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        // GET: Show booking form for a specific car
         [HttpGet]
-        public async Task<IActionResult> Booking(int Id, DateTime pickupDate, DateTime returnDate)
+        public async Task<IActionResult> Book(int carId, DateTime? pickupDate, DateTime? returnDate)
         {
-            // 1. Retrieve the selected car from the database
-            var selectedCar = await _context.Cars.FindAsync(Id);
-            if (selectedCar == null)
+            var car = await _context.Cars.FindAsync(carId);
+            if (car == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Car not found.";
+                return RedirectToAction("Cars", "Guest");
             }
 
-            // 2. Retrieve all available insurances
-            var insurances = await _context.Insurances.ToListAsync();
-            ViewBag.Insurances = insurances;
-            ViewBag.SelectedCar = selectedCar;
-
-            // 3. Create a new booking model and pre-populate with data from the previous page
             var booking = new Booking
             {
-                CarID = Id,
-                PickupDate = pickupDate,
-                ReturnDate = returnDate
+                CarID = carId,
+                Car = car,
+                PickupDate = pickupDate ?? DateTime.Now.AddDays(1),
+                ReturnDate = returnDate ?? DateTime.Now.AddDays(3)
             };
 
-            // If user is authenticated, you can pre-populate other fields
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                // You can add logic here to fetch user details and pre-populate the form
-            }
-
+            // Get available insurances
+            ViewBag.Insurances = await _context.Insurances.ToListAsync();
+            
             return View(booking);
         }
 
+        // POST: Create booking and generate reference code
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Booking(Booking booking, string guestFullName, string guestEmail, string guestPhoneNumber)
+        public async Task<IActionResult> Book(Booking booking, string? guestFullName, string? guestEmail, string? guestPhoneNumber)
         {
-            // --- Step 1: Handle User & Guest Logic ---
-            if (User.Identity.IsAuthenticated)
+            try
             {
-                // For a registered user, populate the UserID from their claims
-                booking.UserID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                booking.GuestID = null; // Ensure GuestID is null for registered users
-            }
-            else
-            {
-                // For a guest user, create a new Guest entity and save it
-                var newGuest = new Guest
+                // Generate unique booking reference
+                booking.BookingReference = GenerateBookingReference();
+                
+                // Handle user authentication
+                if (User.Identity?.IsAuthenticated == true)
                 {
-                    FullName = guestFullName,
-                    Email = guestEmail,
-                    PhoneNumber = guestPhoneNumber
-                };
-                _context.Guests.Add(newGuest);
-                await _context.SaveChangesAsync(); // Save to get the new GuestID
-                booking.GuestID = newGuest.Id; // Assign the new GuestID to the booking
-                booking.UserID = null;
+                    var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (int.TryParse(userIdString, out int userId))
+                    {
+                        booking.UserID = userId;
+                    }
+                }
+                else
+                {
+                    // Handle guest booking
+                    if (string.IsNullOrEmpty(guestFullName) || string.IsNullOrEmpty(guestEmail) || string.IsNullOrEmpty(guestPhoneNumber))
+                    {
+                        TempData["ErrorMessage"] = "Please fill in all guest details.";
+                        return await ReturnBookingView(booking);
+                    }
+
+                    var guest = new Guest
+                    {
+                        FullName = guestFullName,
+                        Email = guestEmail,
+                        PhoneNumber = guestPhoneNumber
+                    };
+
+                    _context.Guests.Add(guest);
+                    await _context.SaveChangesAsync();
+                    booking.GuestID = guest.Id;
+                }
+
+                // Calculate total price
+                var car = await _context.Cars.FindAsync(booking.CarID);
+                if (car == null)
+                {
+                    TempData["ErrorMessage"] = "Car not found.";
+                    return await ReturnBookingView(booking);
+                }
+                
+                var insurance = await _context.Insurances.FindAsync(booking.InsuranceID);
+                
+                var totalDays = (booking.ReturnDate - booking.PickupDate).Days;
+                var carCost = car.RentalPricePerDay * totalDays;
+                var insuranceCost = insurance != null ? (carCost * insurance.CoveragePercentage / 100) : 0;
+                
+                booking.TotalPrice = carCost + insuranceCost;
+                booking.Status = BookingStatus.pending;
+                booking.BookingDate = DateTime.UtcNow;
+
+                // Save booking
+                _context.Bookings.Add(booking);
+                await _context.SaveChangesAsync();
+
+                // Redirect to payment
+                return RedirectToAction("Pay", "Payment", new { bookingId = booking.BookingID });
             }
-
-            // --- Step 2: Set Automatic Data ---
-            booking.BookingDate = DateTime.Now;
-            booking.BookingReference = GenerateBookingReference(); // Generate a unique reference number
-            booking.Status = BookingStatus.pending;
-
-            // --- Step 3: Check Model Validation and Final Availability ---
-            if (!ModelState.IsValid)
+            catch (Exception ex)
             {
-                // Reload data to display the form again with validation errors
-                ViewBag.Insurances = await _context.Insurances.ToListAsync();
-                ViewBag.SelectedCar = await _context.Cars.FindAsync(booking.CarID);
-                return View(booking);
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return await ReturnBookingView(booking);
             }
-
-            // A final check to prevent double-booking at the moment of submission
-            var isCarAvailable = await IsCarAvailableAsync(booking.CarID, booking.PickupDate, booking.ReturnDate);
-            if (!isCarAvailable)
-            {
-                ModelState.AddModelError("", "This car is no longer available for the selected dates. Please select another.");
-                ViewBag.Insurances = await _context.Insurances.ToListAsync();
-                ViewBag.SelectedCar = await _context.Cars.FindAsync(booking.CarID);
-                return View(booking);
-            }
-
-            // --- Step 4: Save the Booking to the Database ---
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            // --- Step 5: Redirect to Payment Page ---
-            return RedirectToAction("Payment", new { bookingId = booking.BookingID });
         }
 
-        // --- HELPER METHODS ---
+        // My Bookings - Find booking by reference code
+        [HttpGet]
+        public IActionResult MyBookings()
+        {
+            return View();
+        }
+
+        // Find booking by reference code
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FindBooking(string bookingReference)
+        {
+            if (string.IsNullOrEmpty(bookingReference))
+            {
+                TempData["ErrorMessage"] = "Please enter a booking reference code.";
+                return View("MyBookings");
+            }
+
+            var booking = await _context.Bookings
+                .Include(b => b.Car)
+                .Include(b => b.Insurance)
+                .Include(b => b.User)
+                .Include(b => b.Guest)
+                .FirstOrDefaultAsync(b => b.BookingReference == bookingReference.ToUpper());
+
+            if (booking == null)
+            {
+                TempData["ErrorMessage"] = "Booking not found. Please check your reference code.";
+                return View("MyBookings");
+            }
+
+            return View("BookingDetails", booking);
+        }
+
+        // Cancel booking
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelBooking(int bookingId, string bookingReference)
+        {
+            var booking = await _context.Bookings.FindAsync(bookingId);
+            
+            if (booking == null || booking.BookingReference != bookingReference)
+            {
+                TempData["ErrorMessage"] = "Booking not found.";
+                return RedirectToAction("MyBookings");
+            }
+
+            if (booking.Status == BookingStatus.Cancelled)
+            {
+                TempData["ErrorMessage"] = "Booking is already cancelled.";
+                return RedirectToAction("FindBooking", new { bookingReference });
+            }
+
+            // Check if booking can be cancelled (e.g., at least 24 hours before pickup)
+            if (booking.PickupDate <= DateTime.Now.AddHours(24))
+            {
+                TempData["ErrorMessage"] = "Cannot cancel booking less than 24 hours before pickup time.";
+                return RedirectToAction("FindBooking", new { bookingReference });
+            }
+
+            booking.Status = BookingStatus.Cancelled;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Booking cancelled successfully.";
+            return RedirectToAction("FindBooking", new { bookingReference });
+        }
+
+        // Extend rental period
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExtendBooking(int bookingId, string bookingReference, DateTime newReturnDate)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.Car)
+                .Include(b => b.Insurance)
+                .FirstOrDefaultAsync(b => b.BookingID == bookingId && b.BookingReference == bookingReference);
+
+            if (booking == null)
+            {
+                TempData["ErrorMessage"] = "Booking not found.";
+                return RedirectToAction("MyBookings");
+            }
+
+            if (newReturnDate <= booking.ReturnDate)
+            {
+                TempData["ErrorMessage"] = "New return date must be after the current return date.";
+                return RedirectToAction("FindBooking", new { bookingReference });
+            }
+
+            // Check if car is available for extended period
+            var conflictingBookings = await _context.Bookings
+                .Where(b => b.CarID == booking.CarID && 
+                           b.BookingID != booking.BookingID &&
+                           b.Status != BookingStatus.Cancelled &&
+                           b.PickupDate < newReturnDate &&
+                           b.ReturnDate > booking.ReturnDate)
+                .AnyAsync();
+
+            if (conflictingBookings)
+            {
+                TempData["ErrorMessage"] = "Car is not available for the extended period.";
+                return RedirectToAction("FindBooking", new { bookingReference });
+            }
+
+            // Calculate additional cost
+            var additionalDays = (newReturnDate - booking.ReturnDate).Days;
+            var additionalCarCost = booking.Car.RentalPricePerDay * additionalDays;
+            var additionalInsuranceCost = booking.Insurance != null ? 
+                (additionalCarCost * booking.Insurance.CoveragePercentage / 100) : 0;
+            
+            var additionalCost = additionalCarCost + additionalInsuranceCost;
+
+            // Update booking
+            booking.ReturnDate = newReturnDate;
+            booking.TotalPrice += additionalCost;
+            
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Booking extended successfully. Additional cost: ${additionalCost:F2}";
+            return RedirectToAction("FindBooking", new { bookingReference });
+        }
 
         private string GenerateBookingReference()
         {
-            // A simple method to generate a unique booking reference
-            // You might use a more robust method in a production environment
-            return "BOOK-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var random = new Random().Next(1000, 9999);
+            return $"RG{timestamp}{random}";
         }
 
-        private async Task<bool> IsCarAvailableAsync(int carId, DateTime pickupDate, DateTime returnDate)
+        private async Task<IActionResult> ReturnBookingView(Booking booking)
         {
-            // Check if there are any existing bookings for the same car
-            // that overlap with the new booking dates.
-            var existingBookings = await _context.Bookings
-                .Where(b => b.CarID == carId &&
-                            b.Status != BookingStatus.Cancelled && // Ignore cancelled bookings
-                            (
-                                (pickupDate >= b.PickupDate && pickupDate < b.ReturnDate) ||
-                                (returnDate > b.PickupDate && returnDate <= b.ReturnDate) ||
-                                (pickupDate <= b.PickupDate && returnDate >= b.ReturnDate)
-                            ))
-                .AnyAsync();
-
-            return !existingBookings;
+            booking.Car = await _context.Cars.FindAsync(booking.CarID);
+            ViewBag.Insurances = await _context.Insurances.ToListAsync();
+            return View(booking);
         }
     }
 }

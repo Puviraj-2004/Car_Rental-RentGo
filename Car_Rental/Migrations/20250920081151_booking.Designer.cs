@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Car_Rental.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250915130936_Error")]
-    partial class Error
+    [Migration("20250920081151_booking")]
+    partial class booking
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -36,22 +36,27 @@ namespace Car_Rental.Migrations
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CarID")
-                        .HasColumnType("int");
+                    b.Property<string>("BookingReference")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<int?>("DamageReportId")
+                    b.Property<int>("CarID")
                         .HasColumnType("int");
 
                     b.Property<int?>("DiscountCodeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DriverID")
+                    b.Property<int?>("DriverID")
                         .HasColumnType("int");
 
                     b.Property<string>("DriverLicenseNumber")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("GuestID")
+                        .HasColumnType("int");
 
                     b.Property<int?>("InsuranceID")
                         .HasColumnType("int");
@@ -70,10 +75,13 @@ namespace Car_Rental.Migrations
                     b.Property<DateTime>("ReturnDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UserID")
+                    b.Property<int?>("UserID")
                         .HasColumnType("int");
 
                     b.HasKey("BookingID");
@@ -83,6 +91,10 @@ namespace Car_Rental.Migrations
                     b.HasIndex("DiscountCodeId");
 
                     b.HasIndex("DriverID");
+
+                    b.HasIndex("GuestID")
+                        .IsUnique()
+                        .HasFilter("[GuestID] IS NOT NULL");
 
                     b.HasIndex("InsuranceID");
 
@@ -111,10 +123,19 @@ namespace Car_Rental.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("IsAirConditioned")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Mileage")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("NumberOfSeats")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("OfferAmount")
                         .HasColumnType("decimal(18,2)");
@@ -145,58 +166,6 @@ namespace Car_Rental.Migrations
                     b.HasKey("CarId");
 
                     b.ToTable("Cars");
-                });
-
-            modelBuilder.Entity("Car_Rental.Models.Entities.DamageReport", b =>
-                {
-                    b.Property<int>("DamageReportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DamageReportId"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CarId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("ClaimAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("DamageImageUrls")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal>("EstimatedRepairCost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("InsuranceID")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsResolved")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("ReportedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("UserPayAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("DamageReportId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("CarId");
-
-                    b.HasIndex("InsuranceID");
-
-                    b.ToTable("DamageReports");
                 });
 
             modelBuilder.Entity("Car_Rental.Models.Entities.DiscountCode", b =>
@@ -248,6 +217,9 @@ namespace Car_Rental.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<decimal?>("FeePerDay")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -275,6 +247,31 @@ namespace Car_Rental.Migrations
                     b.HasKey("DriverID");
 
                     b.ToTable("Drivers");
+                });
+
+            modelBuilder.Entity("Car_Rental.Models.Entities.Guest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Guests");
                 });
 
             modelBuilder.Entity("Car_Rental.Models.Entities.Insurance", b =>
@@ -313,8 +310,16 @@ namespace Car_Rental.Migrations
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("DiscountAmount")
+                    b.Property<decimal?>("DiscountAmount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ExtraFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ExtraFeeReason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("InvoiceDate")
                         .HasColumnType("datetime2");
@@ -380,9 +385,6 @@ namespace Car_Rental.Migrations
                     b.Property<int?>("BookingId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DamageReportId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Method")
                         .HasColumnType("int");
 
@@ -408,8 +410,6 @@ namespace Car_Rental.Migrations
                     b.HasKey("PaymentId");
 
                     b.HasIndex("BookingId");
-
-                    b.HasIndex("DamageReportId");
 
                     b.HasIndex("UserId");
 
@@ -548,11 +548,13 @@ namespace Car_Rental.Migrations
                         .WithMany("Bookings")
                         .HasForeignKey("DiscountCodeId");
 
-                    b.HasOne("Car_Rental.Models.Entities.Driver", "Driver")
+                    b.HasOne("Car_Rental.Models.Entities.Driver", null)
                         .WithMany("Bookings")
-                        .HasForeignKey("DriverID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DriverID");
+
+                    b.HasOne("Car_Rental.Models.Entities.Guest", "Guest")
+                        .WithOne("BookingDetails")
+                        .HasForeignKey("Car_Rental.Models.Entities.Booking", "GuestID");
 
                     b.HasOne("Car_Rental.Models.Entities.Insurance", "Insurance")
                         .WithMany("Bookings")
@@ -560,38 +562,15 @@ namespace Car_Rental.Migrations
 
                     b.HasOne("Car_Rental.Models.Entities.User", "User")
                         .WithMany("Bookings")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserID");
 
                     b.Navigation("Car");
 
-                    b.Navigation("Driver");
+                    b.Navigation("Guest");
 
                     b.Navigation("Insurance");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Car_Rental.Models.Entities.DamageReport", b =>
-                {
-                    b.HasOne("Car_Rental.Models.Entities.Booking", "Booking")
-                        .WithMany("DamageReports")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Car_Rental.Models.Entities.Car", null)
-                        .WithMany("DamageReports")
-                        .HasForeignKey("CarId");
-
-                    b.HasOne("Car_Rental.Models.Entities.Insurance", "Insurance")
-                        .WithMany("DamageReports")
-                        .HasForeignKey("InsuranceID");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Insurance");
                 });
 
             modelBuilder.Entity("Car_Rental.Models.Entities.Invoice", b =>
@@ -620,10 +599,6 @@ namespace Car_Rental.Migrations
                         .WithMany("Payments")
                         .HasForeignKey("BookingId");
 
-                    b.HasOne("Car_Rental.Models.Entities.DamageReport", "DamageReport")
-                        .WithMany()
-                        .HasForeignKey("DamageReportId");
-
                     b.HasOne("Car_Rental.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -631,8 +606,6 @@ namespace Car_Rental.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
-
-                    b.Navigation("DamageReport");
 
                     b.Navigation("User");
                 });
@@ -658,8 +631,6 @@ namespace Car_Rental.Migrations
 
             modelBuilder.Entity("Car_Rental.Models.Entities.Booking", b =>
                 {
-                    b.Navigation("DamageReports");
-
                     b.Navigation("Invoices");
 
                     b.Navigation("Payments");
@@ -668,8 +639,6 @@ namespace Car_Rental.Migrations
             modelBuilder.Entity("Car_Rental.Models.Entities.Car", b =>
                 {
                     b.Navigation("Bookings");
-
-                    b.Navigation("DamageReports");
 
                     b.Navigation("Reviews");
                 });
@@ -684,11 +653,15 @@ namespace Car_Rental.Migrations
                     b.Navigation("Bookings");
                 });
 
+            modelBuilder.Entity("Car_Rental.Models.Entities.Guest", b =>
+                {
+                    b.Navigation("BookingDetails")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Car_Rental.Models.Entities.Insurance", b =>
                 {
                     b.Navigation("Bookings");
-
-                    b.Navigation("DamageReports");
                 });
 
             modelBuilder.Entity("Car_Rental.Models.Entities.User", b =>

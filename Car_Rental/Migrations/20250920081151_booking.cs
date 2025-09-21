@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Car_Rental.Migrations
 {
     /// <inheritdoc />
-    public partial class NewMigration : Migration
+    public partial class booking : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,7 +27,11 @@ namespace Car_Rental.Migrations
                     RentalPricePerDay = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     OfferPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    OfferAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                    OfferAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Rating = table.Column<int>(type: "int", nullable: true),
+                    NumberOfSeats = table.Column<int>(type: "int", nullable: false),
+                    IsAirConditioned = table.Column<bool>(type: "bit", nullable: false),
+                    Mileage = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -65,11 +69,27 @@ namespace Car_Rental.Migrations
                     DriverLicenseNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     LicenseExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    PhotoUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                    PhotoUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    FeePerDay = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Drivers", x => x.DriverID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Guests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Guests", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -117,7 +137,7 @@ namespace Car_Rental.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MustChangePassword = table.Column<bool>(type: "bit", nullable: false)
@@ -133,18 +153,21 @@ namespace Car_Rental.Migrations
                 {
                     BookingID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserID = table.Column<int>(type: "int", nullable: false),
+                    BookingReference = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: true),
+                    GuestID = table.Column<int>(type: "int", nullable: true),
                     CarID = table.Column<int>(type: "int", nullable: false),
-                    DriverID = table.Column<int>(type: "int", nullable: true),
                     InsuranceID = table.Column<int>(type: "int", nullable: true),
-                    DamageReportId = table.Column<int>(type: "int", nullable: true),
+                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PickupDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ReturnDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DriverLicenseNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     LicenseExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     NIC = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false),
-                    DiscountCodeId = table.Column<int>(type: "int", nullable: true)
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    DiscountCodeId = table.Column<int>(type: "int", nullable: true),
+                    DriverID = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -166,6 +189,11 @@ namespace Car_Rental.Migrations
                         principalTable: "Drivers",
                         principalColumn: "DriverID");
                     table.ForeignKey(
+                        name: "FK_Bookings_Guests_GuestID",
+                        column: x => x.GuestID,
+                        principalTable: "Guests",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Bookings_Insurances_InsuranceID",
                         column: x => x.InsuranceID,
                         principalTable: "Insurances",
@@ -174,8 +202,7 @@ namespace Car_Rental.Migrations
                         name: "FK_Bookings_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
-                        principalColumn: "UserID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserID");
                 });
 
             migrationBuilder.CreateTable(
@@ -228,44 +255,6 @@ namespace Car_Rental.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DamageReports",
-                columns: table => new
-                {
-                    DamageReportId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    BookingId = table.Column<int>(type: "int", nullable: false),
-                    InsuranceID = table.Column<int>(type: "int", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    ReportedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EstimatedRepairCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    IsResolved = table.Column<bool>(type: "bit", nullable: false),
-                    DamageImageUrls = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    ClaimAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    UserPayAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CarId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DamageReports", x => x.DamageReportId);
-                    table.ForeignKey(
-                        name: "FK_DamageReports_Bookings_BookingId",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "BookingID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DamageReports_Cars_CarId",
-                        column: x => x.CarId,
-                        principalTable: "Cars",
-                        principalColumn: "CarId");
-                    table.ForeignKey(
-                        name: "FK_DamageReports_Insurances_InsuranceID",
-                        column: x => x.InsuranceID,
-                        principalTable: "Insurances",
-                        principalColumn: "InsuranceID");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Invoices",
                 columns: table => new
                 {
@@ -274,7 +263,9 @@ namespace Car_Rental.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     InvoiceDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DiscountAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DiscountAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ExtraFee = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ExtraFeeReason = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsPaid = table.Column<bool>(type: "bit", nullable: false),
                     PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
@@ -297,7 +288,6 @@ namespace Car_Rental.Migrations
                     PaymentId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: true),
-                    DamageReportId = table.Column<int>(type: "int", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
@@ -315,11 +305,6 @@ namespace Car_Rental.Migrations
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "BookingID");
-                    table.ForeignKey(
-                        name: "FK_Payments_DamageReports_DamageReportId",
-                        column: x => x.DamageReportId,
-                        principalTable: "DamageReports",
-                        principalColumn: "DamageReportId");
                     table.ForeignKey(
                         name: "FK_Payments_Users_UserId",
                         column: x => x.UserId,
@@ -344,6 +329,13 @@ namespace Car_Rental.Migrations
                 column: "DriverID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Bookings_GuestID",
+                table: "Bookings",
+                column: "GuestID",
+                unique: true,
+                filter: "[GuestID] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_InsuranceID",
                 table: "Bookings",
                 column: "InsuranceID");
@@ -352,21 +344,6 @@ namespace Car_Rental.Migrations
                 name: "IX_Bookings_UserID",
                 table: "Bookings",
                 column: "UserID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DamageReports_BookingId",
-                table: "DamageReports",
-                column: "BookingId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DamageReports_CarId",
-                table: "DamageReports",
-                column: "CarId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DamageReports_InsuranceID",
-                table: "DamageReports",
-                column: "InsuranceID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Invoices_BookingId",
@@ -382,11 +359,6 @@ namespace Car_Rental.Migrations
                 name: "IX_Payments_BookingId",
                 table: "Payments",
                 column: "BookingId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_DamageReportId",
-                table: "Payments",
-                column: "DamageReportId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_UserId",
@@ -423,9 +395,6 @@ namespace Car_Rental.Migrations
                 name: "Staffs");
 
             migrationBuilder.DropTable(
-                name: "DamageReports");
-
-            migrationBuilder.DropTable(
                 name: "Bookings");
 
             migrationBuilder.DropTable(
@@ -436,6 +405,9 @@ namespace Car_Rental.Migrations
 
             migrationBuilder.DropTable(
                 name: "Drivers");
+
+            migrationBuilder.DropTable(
+                name: "Guests");
 
             migrationBuilder.DropTable(
                 name: "Insurances");

@@ -17,7 +17,7 @@ namespace Car_Rental.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -44,7 +44,7 @@ namespace Car_Rental.Migrations
                     b.Property<int?>("DiscountCodeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DriverID")
+                    b.Property<int?>("DriverID")
                         .HasColumnType("int");
 
                     b.Property<string>("DriverLicenseNumber")
@@ -52,7 +52,7 @@ namespace Car_Rental.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("GuestID")
+                    b.Property<int?>("GuestID")
                         .HasColumnType("int");
 
                     b.Property<int?>("InsuranceID")
@@ -78,7 +78,7 @@ namespace Car_Rental.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UserID")
+                    b.Property<int?>("UserID")
                         .HasColumnType("int");
 
                     b.HasKey("BookingID");
@@ -90,7 +90,8 @@ namespace Car_Rental.Migrations
                     b.HasIndex("DriverID");
 
                     b.HasIndex("GuestID")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[GuestID] IS NOT NULL");
 
                     b.HasIndex("InsuranceID");
 
@@ -267,7 +268,7 @@ namespace Car_Rental.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Guest");
+                    b.ToTable("Guests");
                 });
 
             modelBuilder.Entity("Car_Rental.Models.Entities.Insurance", b =>
@@ -544,17 +545,13 @@ namespace Car_Rental.Migrations
                         .WithMany("Bookings")
                         .HasForeignKey("DiscountCodeId");
 
-                    b.HasOne("Car_Rental.Models.Entities.Driver", "Driver")
+                    b.HasOne("Car_Rental.Models.Entities.Driver", null)
                         .WithMany("Bookings")
-                        .HasForeignKey("DriverID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DriverID");
 
                     b.HasOne("Car_Rental.Models.Entities.Guest", "Guest")
                         .WithOne("BookingDetails")
-                        .HasForeignKey("Car_Rental.Models.Entities.Booking", "GuestID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Car_Rental.Models.Entities.Booking", "GuestID");
 
                     b.HasOne("Car_Rental.Models.Entities.Insurance", "Insurance")
                         .WithMany("Bookings")
@@ -562,13 +559,9 @@ namespace Car_Rental.Migrations
 
                     b.HasOne("Car_Rental.Models.Entities.User", "User")
                         .WithMany("Bookings")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserID");
 
                     b.Navigation("Car");
-
-                    b.Navigation("Driver");
 
                     b.Navigation("Guest");
 

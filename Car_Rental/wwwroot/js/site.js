@@ -1,5 +1,9 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
-    var ctx = document.getElementById('bookingChart').getContext('2d');
+document.addEventListener("DOMContentLoaded", function () {
+    var chartElement = document.getElementById('bookingChart');
+    if (!chartElement) {
+        return; // Exit if chart element doesn't exist
+    }
+    var ctx = chartElement.getContext('2d');
 
 var gradient = ctx.createLinearGradient(0, 0, 0, 400);
 gradient.addColorStop(0, 'rgba(54, 162, 235, 0.5)');

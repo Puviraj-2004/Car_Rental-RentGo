@@ -1,0 +1,263 @@
+@model Car_Rental.Models.Entities.Booking
+@{
+    ViewData["Title"] = "Payment";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-credit-card"></i> Complete Payment</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <!-- Booking Summary -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Booking Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Booking Reference:</strong> @Model.BookingReference</p>
+                                    <p><strong>Car:</strong> @Model.Car?.Brand @Model.Car?.Model</p>
+                                    <p><strong>Duration:</strong> @ViewBag.TotalDays days</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Pickup:</strong> @Model.PickupDate.ToString("dd MMM yyyy")</p>
+                                    <p><strong>Return:</strong> @Model.ReturnDate.ToString("dd MMM yyyy")</p>
+                                    <p><strong>Insurance:</strong> @(Model.Insurance?.Name ?? "No Insurance")</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Breakdown -->
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p>Car Rental (@ViewBag.TotalDays days × $@Model.Car?.RentalPricePerDay)</p>
+                                    @if (ViewBag.InsuranceCost > 0)
+                                    {
+                                        <p>Insurance Coverage</p>
+                                    }
+                                    <hr>
+                                    <h5><strong>Total Amount</strong></h5>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <p>$@ViewBag.CarCost</p>
+                                    @if (ViewBag.InsuranceCost > 0)
+                                    {
+                                        <p>$@ViewBag.InsuranceCost</p>
+                                    }
+                                    <hr>
+                                    <h5><strong>$@ViewBag.TotalPrice</strong></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <form asp-controller="Payment" asp-action="ProcessPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@Model.BookingID" />
+
+                        <!-- Payment Method Selection -->
+                        <div class="mb-4">
+                            <h5>Select Payment Method</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card payment-method" onclick="selectPaymentMethod('CreditCard')">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-credit-card fa-2x text-primary mb-2"></i>
+                                            <h6>Credit Card</h6>
+                                            <input type="radio" name="paymentMethod" value="CreditCard" class="form-check-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card payment-method" onclick="selectPaymentMethod('DebitCard')">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-money-check-alt fa-2x text-success mb-2"></i>
+                                            <h6>Debit Card</h6>
+                                            <input type="radio" name="paymentMethod" value="DebitCard" class="form-check-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card payment-method" onclick="selectPaymentMethod('PayPal')">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-paypal fa-2x text-info mb-2"></i>
+                                            <h6>PayPal</h6>
+                                            <input type="radio" name="paymentMethod" value="PayPal" class="form-check-input">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Details (shown when card payment is selected) -->
+                        <div id="cardDetails" style="display: none;">
+                            <h5>Card Details</h5>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Card Holder Name</label>
+                                        <input type="text" name="cardHolderName" class="form-control" placeholder="John Doe">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Card Number</label>
+                                        <input type="text" name="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">CVV</label>
+                                        <input type="text" name="cvv" class="form-control" placeholder="123" maxlength="4">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Expiry Date</label>
+                                        <input type="text" name="expiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Demo Card Info -->
+                            <div class="alert alert-info">
+                                <h6>Demo Card Details (for testing):</h6>
+                                <p><strong>Card Number:</strong> 4111 1111 1111 1111<br>
+                                <strong>Expiry:</strong> 12/25<br>
+                                <strong>CVV:</strong> 123</p>
+                            </div>
+                        </div>
+
+                        <!-- PayPal Info (shown when PayPal is selected) -->
+                        <div id="paypalInfo" style="display: none;">
+                            <div class="alert alert-info">
+                                <h6>PayPal Payment</h6>
+                                <p>You will be redirected to PayPal to complete your payment securely.</p>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success btn-lg" id="payButton" disabled>
+                                <i class="fas fa-lock"></i> Pay Now - $@ViewBag.TotalPrice
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Info Sidebar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-shield-alt"></i> Secure Payment</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> SSL Encrypted</li>
+                        <li><i class="fas fa-check text-success"></i> PCI Compliant</li>
+                        <li><i class="fas fa-check text-success"></i> 24/7 Fraud Protection</li>
+                        <li><i class="fas fa-check text-success"></i> Money Back Guarantee</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>Need Help?</h6>
+                </div>
+                <div class="card-body">
+                    <p><i class="fas fa-phone"></i> Call: +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> Email: support@rentgo.com</p>
+                    <p><i class="fas fa-clock"></i> Available 24/7</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function selectPaymentMethod(method) {
+            // Clear all selections
+            document.querySelectorAll('.payment-method').forEach(card => {
+                card.classList.remove('border-primary');
+            });
+            
+            // Select current method
+            event.currentTarget.classList.add('border-primary');
+            document.querySelector(`input[value="${method}"]`).checked = true;
+            
+            // Show/hide relevant sections
+            const cardDetails = document.getElementById('cardDetails');
+            const paypalInfo = document.getElementById('paypalInfo');
+            const payButton = document.getElementById('payButton');
+            
+            if (method === 'CreditCard' || method === 'DebitCard') {
+                cardDetails.style.display = 'block';
+                paypalInfo.style.display = 'none';
+            } else if (method === 'PayPal') {
+                cardDetails.style.display = 'none';
+                paypalInfo.style.display = 'block';
+            }
+            
+            // Enable pay button
+            payButton.disabled = false;
+        }
+
+        // Format card number input
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardNumberInput = document.querySelector('input[name="cardNumber"]');
+            if (cardNumberInput) {
+                cardNumberInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '');
+                    let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+                    e.target.value = formattedValue;
+                });
+            }
+
+            // Format expiry date
+            const expiryInput = document.querySelector('input[name="expiryDate"]');
+            if (expiryInput) {
+                expiryInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    e.target.value = value;
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .payment-method {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .payment-method:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .payment-method.border-primary {
+            border: 2px solid #007bff !important;
+        }
+    </style>
+}

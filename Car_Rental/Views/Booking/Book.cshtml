@@ -1,0 +1,162 @@
+@model Car_Rental.Models.Entities.Booking
+@{
+    ViewData["Title"] = "Book Your Car";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h4><i class="fas fa-calendar-check"></i> Complete Your Booking</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <form asp-controller="Booking" asp-action="Book" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <!-- Hidden fields -->
+                        <input type="hidden" asp-for="CarID" />
+                        <input type="hidden" asp-for="PickupDate" />
+                        <input type="hidden" asp-for="ReturnDate" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Driver License Number *</label>
+                                    <input type="text" asp-for="DriverLicenseNumber" class="form-control" required>
+                                    <span asp-validation-for="DriverLicenseNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">License Expiry Date *</label>
+                                    <input type="date" asp-for="LicenseExpiryDate" class="form-control" required>
+                                    <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">National ID/Passport *</label>
+                                    <input type="text" asp-for="NIC" class="form-control" required>
+                                    <span asp-validation-for="NIC" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Insurance Plan</label>
+                                    <select asp-for="InsuranceID" class="form-select">
+                                        <option value="">No Insurance</option>
+                                        @if (ViewBag.Insurances != null)
+                                        {
+                                            @foreach (var insurance in ViewBag.Insurances)
+                                            {
+                                                <option value="@insurance.InsuranceID">@insurance.Name - @insurance.CoveragePercentage% coverage</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-credit-card"></i> Proceed to Payment
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#guestDetailsModal">
+                                    <i class="fas fa-user-plus"></i> Continue as Guest
+                                </button>
+                            }
+                        </div>
+
+                        <!-- Guest Details Modal -->
+                        <div class="modal fade" id="guestDetailsModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Guest Information</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Full Name *</label>
+                                            <input type="text" name="guestFullName" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email Address *</label>
+                                            <input type="email" name="guestEmail" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Phone Number *</label>
+                                            <input type="tel" name="guestPhoneNumber" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-credit-card"></i> Proceed to Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Car Details Sidebar -->
+        <div class="col-md-4">
+            @if (Model.Car != null)
+            {
+                <div class="card">
+                    <img src="@(Model.Car.ImageUrl ?? "/images/default-car.jpg")" class="card-img-top" alt="Car Image">
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.Car.Brand @Model.Car.Model</h5>
+                        <p><strong>Year:</strong> @Model.Car.Year</p>
+                        <p><strong>Pickup:</strong> @Model.PickupDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Return:</strong> @Model.ReturnDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Duration:</strong> @((Model.ReturnDate - Model.PickupDate).Days) days</p>
+                        <hr>
+                        <h4 class="text-warning text-center">$@Model.Car.RentalPricePerDay / day</h4>
+                        <p class="text-center text-muted">
+                            Total: $@(Model.Car.RentalPricePerDay * (Model.ReturnDate - Model.PickupDate).Days)
+                        </p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        // Set minimum date for license expiry to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const licenseExpiryInput = document.querySelector('input[name="LicenseExpiryDate"]');
+            if (licenseExpiryInput) {
+                const today = new Date().toISOString().split('T')[0];
+                licenseExpiryInput.setAttribute('min', today);
+            }
+        });
+    </script>
+}

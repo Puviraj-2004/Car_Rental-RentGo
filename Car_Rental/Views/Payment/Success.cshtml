@@ -1,0 +1,210 @@
+@model Car_Rental.Models.Entities.Booking
+@{
+    ViewData["Title"] = "Payment Successful";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Success Animation -->
+            <div class="text-center mb-4">
+                <div class="success-animation">
+                    <i class="fas fa-check-circle fa-5x text-success"></i>
+                </div>
+                <h2 class="text-success mt-3">Payment Successful!</h2>
+                <p class="lead">Your booking has been confirmed</p>
+            </div>
+
+            <!-- Booking Confirmation Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-calendar-check"></i> Booking Confirmation</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    <!-- Important Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-primary">Booking Reference</h5>
+                                    <h3 class="text-dark">@Model.BookingReference</h3>
+                                    <small class="text-muted">Keep this for your records</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-success">Transaction ID</h5>
+                                    <h6 class="text-dark">@TempData["TransactionId"]</h6>
+                                    <small class="text-muted">Payment confirmation</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Details -->
+                    <h5>Booking Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Car:</strong></td>
+                                    <td>@Model.Car?.Brand @Model.Car?.Model (@Model.Car?.Year)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pickup Date:</strong></td>
+                                    <td>@Model.PickupDate.ToString("dddd, dd MMMM yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Return Date:</strong></td>
+                                    <td>@Model.ReturnDate.ToString("dddd, dd MMMM yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duration:</strong></td>
+                                    <td>@((Model.ReturnDate - Model.PickupDate).Days) days</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Customer:</strong></td>
+                                    <td>@(Model.User?.FullName ?? Model.Guest?.FullName)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>@(Model.User?.Email ?? Model.Guest?.Email)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Phone:</strong></td>
+                                    <td>@(Model.User?.PhoneNumber ?? Model.Guest?.PhoneNumber)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Paid:</strong></td>
+                                    <td><strong class="text-success">$@Model.TotalPrice</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pickup Instructions -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Pickup Instructions</h6>
+                        <ul class="mb-0">
+                            <li>Arrive at our location 15 minutes before your pickup time</li>
+                            <li>Bring a valid driver's license and credit card</li>
+                            <li>Present this booking confirmation (digital or printed)</li>
+                            <li>Complete the vehicle inspection with our staff</li>
+                        </ul>
+                    </div>
+
+                    <!-- Pickup Location -->
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6><i class="fas fa-map-marker-alt"></i> Pickup Location</h6>
+                            <p class="mb-1"><strong>RentGo Car Rental</strong></p>
+                            <p class="mb-1">123 Main Street, Downtown</p>
+                            <p class="mb-1">City, State 12345</p>
+                            <p class="mb-0"><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        <button onclick="window.print()" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-print"></i> Print Confirmation
+                        </button>
+                        <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-warning me-2">
+                            <i class="fas fa-search"></i> Manage Booking
+                        </a>
+                        <a href="@Url.Action("Cars", "Guest")" class="btn btn-success">
+                            <i class="fas fa-car"></i> Book Another Car
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-headset"></i> Need Assistance?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-phone fa-2x text-primary mb-2"></i>
+                            <h6>Call Us</h6>
+                            <p>+1 (555) 123-4567<br>Available 24/7</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-envelope fa-2x text-success mb-2"></i>
+                            <h6>Email Support</h6>
+                            <p>support@rentgo.com<br>Response within 2 hours</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-comments fa-2x text-info mb-2"></i>
+                            <h6>Live Chat</h6>
+                            <p>Available on our website<br>9 AM - 9 PM daily</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Success animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const successIcon = document.querySelector('.success-animation i');
+            if (successIcon) {
+                successIcon.style.transform = 'scale(0)';
+                successIcon.style.transition = 'transform 0.5s ease-in-out';
+                
+                setTimeout(() => {
+                    successIcon.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+
+        // Auto-scroll to top
+        window.scrollTo(0, 0);
+    </script>
+
+    <style>
+        .success-animation {
+            animation: bounce 1s ease-in-out;
+        }
+
+        @@keyframes bounce {
+            0%, 20%, 60%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            80% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @@media print {
+            .btn, .card-header {
+                display: none !important;
+            }
+            .container {
+                max-width: 100% !important;
+            }
+        }
+    </style>
+}
