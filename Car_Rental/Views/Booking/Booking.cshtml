@@ -2,157 +2,106 @@
 @{
     ViewData["Title"] = "Reservations Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    // Array of colors for user avatars to cycle through
+    var avatarColors = new[] { "bg-primary", "bg-success", "bg-info", "bg-warning", "bg-danger", "bg-dark" };
 }
 
-<div class="container-fluid">
+<!-- Add CSRF Token for AJAX requests -->
+@Html.AntiForgeryToken()
+
+<div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">Reservations Management</h1>
-            <p class="text-muted">Manage and monitor all booking reservations</p>
-        </div>
-        <div>
-            <button class="btn btn-success" onclick="refreshReservations()">
-                <i class="fas fa-sync-alt me-2"></i>Refresh
-            </button>
+            <h1 class="h3 mb-1 text-gray-800">Reservations Dashboard</h1>
+            <p class="text-muted">A colorful way to manage and monitor all booking reservations.</p>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
+    <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card card-stats-colorful bg-primary text-white h-100">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Reservations</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalBookings</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title text-uppercase mb-0 opacity-75">Total Reservations</h5>
+                            <span class="h2 font-weight-bold mb-0">@ViewBag.TotalBookings</span>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        <div class="icon-circle">
+                            <i class="fas fa-calendar-check fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card card-stats-colorful bg-warning text-white h-100">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Pending Approval</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.PendingBookings</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title text-uppercase mb-0 opacity-75">Pending Approval</h5>
+                            <span class="h2 font-weight-bold mb-0">@ViewBag.PendingBookings</span>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        <div class="icon-circle">
+                            <i class="fas fa-clock fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+            <div class="card card-stats-colorful bg-success text-white h-100">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Active Bookings</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.ActiveBookings</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title text-uppercase mb-0 opacity-75">Active Bookings</h5>
+                            <span class="h2 font-weight-bold mb-0">@ViewBag.ActiveBookings</span>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-car fa-2x text-gray-300"></i>
+                        <div class="icon-circle">
+                            <i class="fas fa-car fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+            <div class="card card-stats-colorful bg-info text-white h-100">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Completed</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CompletedBookings</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title text-uppercase mb-0 opacity-75">Completed</h5>
+                            <span class="h2 font-weight-bold mb-0">@ViewBag.CompletedBookings</span>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        <div class="icon-circle">
+                            <i class="fas fa-check-circle fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Search and Filter Section -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Search & Filter</h6>
-        </div>
-        <div class="card-body">
-            <form method="get" asp-action="Booking">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="search">Search Reservations</label>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   value="@ViewBag.Search" placeholder="Search by reference, car, or customer name...">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="status">Filter by Status</label>
-                            <select class="form-control" id="status" name="status">
-                                <option value="">All Statuses</option>
-                                <option value="pending" selected="@(ViewBag.Status == "pending")">Pending</option>
-                                <option value="Booked" selected="@(ViewBag.Status == "Booked")">Booked</option>
-                                <option value="Completed" selected="@(ViewBag.Status == "Completed")">Completed</option>
-                                <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled")">Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="fas fa-search me-2"></i>Search
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
 
     <!-- Reservations Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">All Reservations</h6>
-            <div class="dropdown no-arrow">
-                <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end shadow">
-                    <div class="dropdown-header">Export Options:</div>
-                    <a class="dropdown-item" href="#" onclick="exportReservations('csv')">
-                        <i class="fas fa-file-csv fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Export to CSV
-                    </a>
-                    <a class="dropdown-item" href="#" onclick="exportReservations('pdf')">
-                        <i class="fas fa-file-pdf fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Export to PDF
-                    </a>
-                </div>
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-gradient-colorful text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-stream me-2"></i>All Reservations</h6>
+                <form method="get" asp-action="Booking" class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" name="search" value="@ViewBag.Search" placeholder="Search...">
+                    <select class="form-select form-select-sm" name="status" onchange="this.form.submit()" style="max-width: 150px;">
+                        <option value="">All Statuses</option>
+                        <option value="pending" selected="@(ViewBag.Status == "pending")">Pending</option>
+                        <option value="Booked" selected="@(ViewBag.Status == "Booked")">Booked</option>
+                        <option value="Completed" selected="@(ViewBag.Status == "Completed")">Completed</option>
+                        <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled")">Cancelled</option>
+                    </select>
+                </form>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered" id="reservationsTable" width="100%" cellspacing="0">
+                <table class="table table-hover align-middle" id="reservationsTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>Reference</th>
@@ -160,24 +109,24 @@
                             <th>Vehicle</th>
                             <th>Pickup Date</th>
                             <th>Return Date</th>
-                            <th>Duration</th>
                             <th>Total Price</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var booking in Model)
                         {
+                            var avatarColor = avatarColors[booking.BookingID % avatarColors.Length];
                             <tr>
                                 <td>
-                                    <strong class="text-primary">@booking.BookingReference</strong>
-                                    <br><small class="text-muted">@booking.BookingDate.ToString("MMM dd, yyyy")</small>
+                                    <h6 class="mb-0 text-primary fw-bold">@booking.BookingReference</h6>
+                                    <small class="text-muted">@booking.BookingDate.ToString("MMM dd, yyyy")</small>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2">
-                                            <div class="avatar-title bg-secondary text-white rounded-circle">
+                                        <div class="avatar-sm me-3">
+                                            <div class="avatar-title @avatarColor text-white rounded-circle">
                                                 @((booking.User?.FullName ?? booking.Guest?.FullName ?? "G").Substring(0, 1).ToUpper())
                                             </div>
                                         </div>
@@ -188,18 +137,17 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <strong>@booking.Car?.Brand @booking.Car?.Model</strong>
-                                    <br><small class="text-muted">@booking.Car?.Year - @booking.Car?.RegistrationNumber</small>
+                                    <h6 class="mb-0">@booking.Car?.Brand @booking.Car?.Model</h6>
+                                    <small class="text-muted">@booking.Car?.RegistrationNumber</small>
                                 </td>
                                 <td>@booking.PickupDate.ToString("MMM dd, yyyy")</td>
                                 <td>@booking.ReturnDate.ToString("MMM dd, yyyy")</td>
-                                <td>@((booking.ReturnDate - booking.PickupDate).Days) days</td>
-                                <td><strong>$@booking.TotalPrice</strong></td>
-                                <td>
+                                <td><h6 class="mb-0 fw-bold">$@booking.TotalPrice</h6></td>
+                                <td class="text-center">
                                     @switch (booking.Status)
                                     {
                                         case Car_Rental.Enum.BookingStatus.pending:
-                                            <span class="badge bg-warning">Pending</span>
+                                            <span class="badge bg-warning text-dark">Pending</span>
                                             break;
                                         case Car_Rental.Enum.BookingStatus.Booked:
                                             <span class="badge bg-success">Active</span>
@@ -215,23 +163,14 @@
                                             break;
                                     }
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                onclick="viewBookingDetails(@booking.BookingID)" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewBookingDetails(@booking.BookingID)" title="View Details"><i class="fas fa-eye"></i></button>
                                         @if (booking.Status == Car_Rental.Enum.BookingStatus.pending || booking.Status == Car_Rental.Enum.BookingStatus.Booked)
                                         {
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="showCancelModal(@booking.BookingID, '@booking.BookingReference')" title="Cancel Booking">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="showCancelModal(@booking.BookingID, '@booking.BookingReference')" title="Cancel"><i class="fas fa-times"></i></button>
                                         }
-                                        <button type="button" class="btn btn-sm btn-outline-info" 
-                                                onclick="contactCustomer('@(booking.User?.Email ?? booking.Guest?.Email)')" title="Contact Customer">
-                                            <i class="fas fa-envelope"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="contactCustomer('@(booking.User?.Email ?? booking.Guest?.Email)')" title="Contact"><i class="fas fa-envelope"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -245,24 +184,18 @@
 
 <!-- Enhanced Booking Details Modal -->
 <div class="modal fade" id="bookingDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-gradient-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-calendar-alt me-2"></i>Booking Details
-                </h5>
+            <div class="modal-header bg-gradient-colorful text-white">
+                <h5 class="modal-title"><i class="fas fa-file-invoice-dollar me-2"></i>Booking Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" id="bookingDetailsContent">
-                <!-- Content loaded via JavaScript -->
+            <div class="modal-body p-4" id="bookingDetailsContent">
+                <!-- Content will be loaded here via JavaScript -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i>Close
-                </button>
-                <button type="button" class="btn btn-primary" onclick="printBookingDetails()">
-                    <i class="fas fa-print me-2"></i>Print Details
-                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printBookingDetails()"><i class="fas fa-print me-2"></i>Print</button>
             </div>
         </div>
     </div>
@@ -270,32 +203,27 @@
 
 <!-- Cancel Booking Modal -->
 <div class="modal fade" id="cancelBookingModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Cancel Booking</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Cancellation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Warning!</strong> This action cannot be undone. Are you sure you want to cancel this booking?
-                </div>
-                <p>Booking Reference: <strong id="cancelBookingRef"></strong></p>
+                <p>Are you sure you want to cancel booking <strong id="cancelBookingRef" class="text-danger"></strong>? This action cannot be undone.</p>
                 <div class="form-group">
-                    <label for="cancelReason">Reason for Cancellation (Optional)</label>
-                    <textarea class="form-control" id="cancelReason" rows="3" placeholder="Enter reason for cancellation..."></textarea>
+                    <label for="cancelReason" class="form-label">Reason for Cancellation (Optional)</label>
+                    <textarea class="form-control" id="cancelReason" rows="3" placeholder="Enter reason..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Booking</button>
-                <button type="button" class="btn btn-danger" onclick="confirmCancelBooking()">
-                    <i class="fas fa-times me-2"></i>Cancel Booking
-                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancelBooking()">Confirm Cancellation</button>
             </div>
         </div>
     </div>
 </div>
+
 
 @section Scripts {
     <script>
@@ -303,154 +231,73 @@
 
         $(document).ready(function() {
             $('#reservationsTable').DataTable({
-                "pageLength": 25,
-                "order": [[ 0, "desc" ]], // Sort by booking reference (newest first)
+                "pageLength": 10,
+                "order": [[ 0, "desc" ]], // Sort by the first column (Reference) in descending order
                 "columnDefs": [
-                    { "orderable": false, "targets": 8 } // Disable sorting on Actions column
+                    { "orderable": false, "targets": 7 } // Disable sorting on the 'Actions' column
                 ]
             });
-
-            // Auto-refresh every 30 seconds
-            setInterval(function() {
-                updateRevenueData();
-            }, 30000);
         });
 
-        function refreshReservations() {
-            location.reload();
-        }
-
         function viewBookingDetails(bookingId) {
-            // Show loading state
-            document.getElementById('bookingDetailsContent').innerHTML = `
-                <div class="d-flex justify-content-center align-items-center" style="height: 300px;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            `;
-            
+            const contentEl = document.getElementById('bookingDetailsContent');
+            contentEl.innerHTML = `<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+
             fetch(`/Booking/GetBookingDetails/${bookingId}`)
                 .then(response => response.json())
                 .then(data => {
-                    const statusColor = getStatusColor(data.status);
-                    const paymentColor = data.paymentStatus === 'Paid' ? 'success' : 'warning';
-                    
-                    document.getElementById('bookingDetailsContent').innerHTML = `
-                        <!-- Header Section -->
-                        <div class="bg-light p-4 border-bottom">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h4 class="mb-1">Booking Reference: <span class="text-primary">${data.bookingReference}</span></h4>
-                                    <p class="text-muted mb-0">Created on ${data.bookingDate}</p>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    <span class="badge bg-${statusColor} fs-6 px-3 py-2">${data.status}</span>
-                                </div>
-                            </div>
+                    const statusConfig = getStatusConfig(data.status);
+
+                    contentEl.innerHTML = `
+                        <div class="text-center mb-4">
+                            <h4>Reference: <span class="text-primary fw-bold">${data.bookingReference}</span></h4>
+                            <span class="badge fs-6 ${statusConfig.badgeClass}">${data.status}</span>
                         </div>
 
-                        <!-- Main Content -->
-                        <div class="p-4">
-                            <div class="row g-4">
-                                <!-- Vehicle Information Card -->
-                                <div class="col-lg-6">
-                                    <div class="card h-100 border-0 shadow-sm">
-                                        <div class="card-header bg-primary text-white">
-                                            <h6 class="mb-0"><i class="fas fa-car me-2"></i>Vehicle Information</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <p class="mb-2"><strong>Vehicle:</strong></p>
-                                                    <p class="text-primary fs-5 fw-bold">${data.car.brand} ${data.car.model}</p>
-                                                </div>
-                                                <div class="col-sm-6">
-                                                    <p class="mb-2"><strong>Year:</strong></p>
-                                                    <p class="fs-6">${data.car.year}</p>
-                                                </div>
-                                            </div>
-                                            <div class="mt-3">
-                                                <p class="mb-2"><strong>Registration Number:</strong></p>
-                                                <span class="badge bg-secondary fs-6">${data.car.registrationNumber}</span>
-                                            </div>
-                                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-car me-2"></i>Vehicle</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>${data.car.brand} ${data.car.model}</h5>
+                                        <p class="text-muted mb-1">Year: ${data.car.year}</p>
+                                        <p class="text-muted">Reg: ${data.car.registrationNumber}</p>
                                     </div>
                                 </div>
-
-                                <!-- Customer Information Card -->
-                                <div class="col-lg-6">
-                                    <div class="card h-100 border-0 shadow-sm">
-                                        <div class="card-header bg-info text-white">
-                                            <h6 class="mb-0"><i class="fas fa-user me-2"></i>Customer Information</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <div class="avatar-lg me-3">
-                                                    <div class="avatar-title bg-info text-white rounded-circle">
-                                                        ${data.customer.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1">${data.customer.name}</h6>
-                                                    <span class="badge bg-light text-dark">${data.customer.type} Customer</span>
-                                                </div>
-                                            </div>
-                                            <div class="contact-info">
-                                                <p class="mb-2"><i class="fas fa-envelope text-muted me-2"></i>${data.customer.email}</p>
-                                                <p class="mb-0"><i class="fas fa-phone text-muted me-2"></i>${data.customer.phone}</p>
-                                            </div>
-                                        </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-user me-2"></i>Customer</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>${data.customer.name}</h5>
+                                        <p class="text-muted mb-1">${data.customer.email}</p>
+                                        <p class="text-muted">${data.customer.phone}</p>
                                     </div>
                                 </div>
-
-                                <!-- Booking Timeline Card -->
-                                <div class="col-lg-8">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-success text-white">
-                                            <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Booking Timeline</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="timeline">
-                                                <div class="timeline-item">
-                                                    <div class="timeline-marker bg-success"></div>
-                                                    <div class="timeline-content">
-                                                        <h6 class="mb-1">Pickup Date</h6>
-                                                        <p class="text-muted mb-0">${data.pickupDate}</p>
-                                                    </div>
-                                                </div>
-                                                <div class="timeline-item">
-                                                    <div class="timeline-marker bg-warning"></div>
-                                                    <div class="timeline-content">
-                                                        <h6 class="mb-1">Return Date</h6>
-                                                        <p class="text-muted mb-0">${data.returnDate}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Timeline</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>Pickup:</strong> ${data.pickupDate}</p>
+                                        <p class="mb-0"><strong>Return:</strong> ${data.returnDate}</p>
                                     </div>
                                 </div>
-
-                                <!-- Payment & Insurance Card -->
-                                <div class="col-lg-4">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-warning text-dark">
-                                            <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment & Insurance</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <p class="mb-2"><strong>Total Amount:</strong></p>
-                                                <h4 class="text-success mb-0">$${data.totalPrice}</h4>
-                                            </div>
-                                            <div class="mb-3">
-                                                <p class="mb-2"><strong>Payment Status:</strong></p>
-                                                <span class="badge bg-${paymentColor} fs-6">${data.paymentStatus}</span>
-                                            </div>
-                                            <div>
-                                                <p class="mb-2"><strong>Insurance:</strong></p>
-                                                <p class="text-muted mb-0">${data.insurance}</p>
-                                            </div>
-                                        </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5>Total: <span class="fw-bold text-success">$${data.totalPrice}</span></h5>
+                                        <p class="mb-0"><strong>Status:</strong> ${data.paymentStatus}</p>
                                     </div>
                                 </div>
                             </div>
@@ -459,29 +306,28 @@
                     new bootstrap.Modal(document.getElementById('bookingDetailsModal')).show();
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('bookingDetailsContent').innerHTML = `
-                        <div class="text-center p-5">
-                            <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
-                            <h5>Failed to load booking details</h5>
-                            <p class="text-muted">Please try again later.</p>
-                        </div>
-                    `;
+                    console.error('Error fetching booking details:', error);
+                    contentEl.innerHTML = `<div class="alert alert-danger">Failed to load booking details. Please try again.</div>`;
                 });
         }
 
-        function getStatusColor(status) {
+        function getStatusConfig(status) {
             switch(status.toLowerCase()) {
-                case 'pending': return 'warning';
-                case 'booked': return 'success';
-                case 'completed': return 'info';
-                case 'cancelled': return 'danger';
-                default: return 'secondary';
+                case 'pending': return { badgeClass: 'bg-warning text-dark' };
+                case 'booked': return { badgeClass: 'bg-success' };
+                case 'completed': return { badgeClass: 'bg-info' };
+                case 'cancelled': return { badgeClass: 'bg-danger' };
+                default: return { badgeClass: 'bg-secondary' };
             }
         }
 
         function printBookingDetails() {
+            const printContent = document.getElementById('bookingDetailsContent').innerHTML;
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
             window.print();
+            document.body.innerHTML = originalContent;
+            location.reload(); // Reload to restore event listeners and original state
         }
 
         function showCancelModal(bookingId, bookingRef) {
@@ -495,28 +341,28 @@
             if (!currentBookingId) return;
 
             const reason = document.getElementById('cancelReason').value;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
             const formData = new FormData();
             formData.append('bookingId', currentBookingId);
             formData.append('reason', reason);
-            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
 
             fetch('/Booking/AdminCancelBooking', {
                 method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                },
                 body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            }).then(res => res.json()).then(data => {
                 if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('cancelBookingModal')).hide();
-                    alert('Booking cancelled successfully');
+                    alert('Booking cancelled successfully!');
                     location.reload();
                 } else {
                     alert('Error: ' + data.message);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to cancel booking');
+            }).catch(error => {
+                console.error('Error cancelling booking:', error);
+                alert('An error occurred. Please try again.');
             });
         }
 
@@ -524,150 +370,104 @@
             if (email) {
                 window.location.href = `mailto:${email}`;
             } else {
-                alert('No email address available for this customer');
+                alert('No email address is available for this customer.');
             }
-        }
-
-        function exportReservations(format) {
-            alert(`Export to ${format.toUpperCase()} functionality will be implemented`);
-        }
-
-        function updateRevenueData() {
-            fetch('/Admin/GetRealtimeRevenue')
-                .then(response => response.json())
-                .then(data => {
-                    // Update revenue displays if they exist on the page
-                    console.log('Revenue updated:', data);
-                })
-                .catch(error => console.error('Error updating revenue:', error));
         }
     </script>
+}
 
+@section Styles {
     <style>
+        /* Colorful Stat Cards */
+        .card-stats-colorful {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+        }
+
+            .card-stats-colorful:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+            }
+
+            .card-stats-colorful .icon-circle {
+                background-color: rgba(255, 255, 255, 0.2);
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+        /* Gradient Header */
+        .bg-gradient-colorful {
+            background: #4e54c8;
+            background: -webkit-linear-gradient(to right, #8f94fb, #4e54c8);
+            background: linear-gradient(to right, #8f94fb, #4e54c8);
+        }
+
+        /* Avatar Styles */
         .avatar-sm {
-            width: 2rem;
-            height: 2rem;
+            width: 2.5rem;
+            height: 2.5rem;
         }
-        
+
         .avatar-title {
-            width: 100%;
-            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .border-left-primary {
-            border-left: 0.25rem solid #4e73df !important;
-        }
-        
-        .border-left-success {
-            border-left: 0.25rem solid #1cc88a !important;
-        }
-        
-        .border-left-info {
-            border-left: 0.25rem solid #36b9cc !important;
-        }
-        
-        .border-left-warning {
-            border-left: 0.25rem solid #f6c23e !important;
-        }
-
-        .text-gray-800 {
-            color: #5a5c69 !important;
-        }
-
-        .text-gray-300 {
-            color: #dddfeb !important;
-        }
-
-        .btn-group .btn {
-            margin-right: 2px;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        /* Enhanced Modal Styles */
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .avatar-lg {
-            width: 60px;
-            height: 60px;
-        }
-        
-        .avatar-title {
             width: 100%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1rem;
             font-weight: 600;
         }
 
-        .timeline {
-            position: relative;
-            padding-left: 30px;
+        /* Table Style */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 5px; /* Adds space between rows */
         }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 15px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #dee2e6;
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 30px;
-        }
-
-        .timeline-marker {
-            position: absolute;
-            left: -22px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 2px #dee2e6;
-        }
-
-        .timeline-content {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #007bff;
-        }
-
-        .contact-info i {
-            width: 20px;
-        }
-
-        .modal-xl {
-            max-width: 1200px;
-        }
-
-        @@media print {
-            .modal-header, .modal-footer {
-                display: none !important;
+            .table thead th {
+                border: none;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
-            
-            .modal-body {
-                padding: 0 !important;
+
+            .table tbody tr {
+                box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+                border-radius: 0.375rem; /* Match Bootstrap's default border-radius */
+                overflow: hidden;
             }
+
+            .table tbody td {
+                background-color: #fff;
+                border-top: 1px solid #dee2e6;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+                .table tbody td:first-child {
+                    border-left: 1px solid #dee2e6;
+                    border-top-left-radius: 0.375rem;
+                    border-bottom-left-radius: 0.375rem;
+                }
+
+                .table tbody td:last-child {
+                    border-right: 1px solid #dee2e6;
+                    border-top-right-radius: 0.375rem;
+                    border-bottom-right-radius: 0.375rem;
+                }
+
+        /* Modal Enhancements */
+        .modal-header .modal-title {
+            font-weight: 600;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
         }
     </style>
 }
-
-<!-- Add CSRF Token for AJAX requests -->
-@Html.AntiForgeryToken()

@@ -223,10 +223,16 @@ namespace Car_Rental.Controllers
                     return Json(new { success = false, message = errorMessage });
                 }
 
-                // Check if booking can be cancelled (must be at least 24 hours before pickup)
-                if (booking.PickupDate <= DateTime.Now.AddHours(24))
+                // Check if booking can be cancelled (can cancel until day before pickup)
+                var currentDate = DateTime.Now.Date;
+                var pickupDate = booking.PickupDate.Date;
+
+                // Cancellation allowed until the day before pickup
+                var lastCancellationDate = pickupDate.AddDays(-1);
+
+                if (currentDate >= lastCancellationDate)
                 {
-                    var errorMessage = "Cannot cancel booking less than 24 hours before pickup time.";
+                    var errorMessage = $"Cancellation is only allowed until {lastCancellationDate:dd/MM/yyyy} (one day before pickup).";
                     return Json(new { success = false, message = errorMessage });
                 }
 
@@ -237,6 +243,9 @@ namespace Car_Rental.Controllers
                 {
                     booking.Car.Status = CarStatus.Available;
                 }
+
+                // Handle revenue reduction for paid bookings
+                await HandleBookingCancellationRevenue(booking);
 
                 await _context.SaveChangesAsync();
 
@@ -467,6 +476,9 @@ namespace Car_Rental.Controllers
                     booking.Car.Status = CarStatus.Available;
                 }
 
+                // Handle revenue reduction for paid bookings
+                await HandleBookingCancellationRevenue(booking);
+
                 await _context.SaveChangesAsync();
 
                 return Json(new { success = true, message = "Booking cancelled successfully." });
@@ -528,6 +540,44 @@ namespace Car_Rental.Controllers
             };
 
             return Json(bookingDetails);
+        }
+
+        // Private method to handle revenue reduction when booking is cancelled
+        private async Task HandleBookingCancellationRevenue(Booking booking)
+        {
+            try
+            {
+                // Check if booking has a paid invoice
+                var invoice = await _context.Invoices
+                    .FirstOrDefaultAsync(i => i.BookingId == booking.BookingID && i.IsPaid);
+
+                if (invoice != null)
+                {
+                    // Create a refund payment record to track revenue reduction
+                    var refundPayment = new Payment
+                    {
+                        BookingId = booking.BookingID,
+                        UserId = booking.UserID, // Will be null for guest bookings
+                        Amount = -invoice.TotalAmount, // Negative amount to reduce revenue
+                        Type = PaymentType.Refund,
+                        Method = PaymentMethod.Refund,
+                        Status = PaymentStatus.Paid,
+                        PaymentGateway = PaymentGatewayType.Internal,
+                        PaymentDate = DateTime.UtcNow,
+                        TransactionId = $"REFUND_{booking.BookingReference}_{DateTime.UtcNow:yyyyMMddHHmmss}"
+                    };
+
+                    _context.Payments.Add(refundPayment);
+
+                    // Optional: Mark the original invoice as refunded
+                    invoice.PaymentMethod = $"{invoice.PaymentMethod} (REFUNDED)";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't stop the cancellation process
+                Console.WriteLine($"Error handling revenue reduction for booking {booking.BookingReference}: {ex.Message}");
+            }
         }
 
     }

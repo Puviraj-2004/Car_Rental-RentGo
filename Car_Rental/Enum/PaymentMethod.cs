@@ -1,4 +1,4 @@
-﻿namespace Car_Rental.Enum
+namespace Car_Rental.Enum
 {
     public enum PaymentMethod
     {
@@ -6,6 +6,7 @@
         CreditCard,
         DebitCard,
         BankTransfer,
-        OnlineTransfer
+        OnlineTransfer,
+        Refund
     }
 }

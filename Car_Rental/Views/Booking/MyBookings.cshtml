@@ -81,22 +81,27 @@
                                             </a>
                                             @if (booking.Status == Car_Rental.Enum.BookingStatus.pending || booking.Status == Car_Rental.Enum.BookingStatus.Booked)
                                             {
-                                                var currentTime = DateTime.Now;
-                                                var cutoffTime = currentTime.AddHours(24);
-                                                var canCancel = booking.PickupDate > cutoffTime;
-                                                
+                                                var currentDate = DateTime.Now.Date;
+                                                var pickupDate = booking.PickupDate.Date;
+                                                var lastCancellationDate = pickupDate.AddDays(-1);
+
+                                                bool canCancel = currentDate <= lastCancellationDate;
+
                                                 if (canCancel)
                                                 {
                                                     <button type="button" class="btn btn-danger btn-sm" 
                                                             onclick="cancelBooking('@booking.BookingID', '@booking.BookingReference', event)">
-                                                        <i class="fas fa-times me-1"></i>Cancel Booking
+                                                        <i class="fas fa-times me-1"></i>Cancel Booking (Free)
                                                     </button>
+                                                    <div class="small text-muted mt-1">
+                                                        <i class="fas fa-info-circle me-1"></i>Free cancellation until @lastCancellationDate.ToString("dd/MM/yyyy")
+                                                    </div>
                                                 }
                                                 else
                                                 {
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-info-circle me-1"></i>Cannot cancel (less than 24h to pickup)
-                                                    </small>
+                                                    <span class="text-danger small">
+                                                        <i class="fas fa-ban me-1"></i>Cancellation not allowed after @lastCancellationDate.ToString("dd/MM/yyyy")
+                                                    </span>
                                                 }
                                             }
                                             @if (booking.Status == Car_Rental.Enum.BookingStatus.Completed)
@@ -191,7 +196,7 @@
                         <ul class="small">
                             <li><i class="fas fa-eye text-info"></i> View booking details</li>
                             <li><i class="fas fa-calendar-plus text-success"></i> Extend rental period</li>
-                            <li><i class="fas fa-times-circle text-danger"></i> Cancel booking (24h+ before pickup)</li>
+                            <li><i class="fas fa-times-circle text-danger"></i> Cancel booking (free until day before pickup)</li>
                             <li><i class="fas fa-print text-secondary"></i> Print confirmation</li>
                         </ul>
 

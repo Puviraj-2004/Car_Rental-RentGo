@@ -84,7 +84,6 @@ namespace Car_Rental.Controllers
                 return user.Role switch
                 {
                     "Admin" => RedirectToAction("Dashboard", "Admin"),
-                    "Staff" => RedirectToAction("Dashboard", "Staff"),
                     _ => RedirectToAction("Home", "Guest"),
                 };
             }
@@ -128,7 +127,6 @@ namespace Car_Rental.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "✅ You have been logged out successfully.";
             return RedirectToAction("Home", "Guest");
         }
     }

@@ -140,16 +140,32 @@ namespace Car_Rental.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCarDetails(int id)
         {
-            var car = await _context.Cars.FindAsync(id);
-            if (car == null) return NotFound();
+            try
+            {
+                var car = await _context.Cars.FindAsync(id);
+                if (car == null) return NotFound();
 
-            // Calculate average rating from reviews
-            var reviews = await _context.Reviews
-                .Where(r => r.CarId == id)
-                .ToListAsync();
+                // Calculate average rating from reviews with error handling
+                double averageRating = 0;
+                int totalReviews = 0;
+                
+                try
+                {
+                    var reviews = await _context.Reviews
+                        .Where(r => r.CarId == id)
+                        .ToListAsync();
 
-            var averageRating = reviews.Any() ? Math.Round(reviews.Average(r => r.Rating), 1) : 0;
-            var totalReviews = reviews.Count;
+                    averageRating = reviews.Any() ? Math.Round(reviews.Average(r => r.Rating), 1) : 0;
+                    totalReviews = reviews.Count;
+                }
+                catch (Exception ex)
+                {
+                    // If Reviews table doesn't exist or there's an error, use default values
+                    averageRating = 0;
+                    totalReviews = 0;
+                    // Log the error if needed
+                    Console.WriteLine($"Error fetching reviews: {ex.Message}");
+                }
 
             var carDetails = new
             {
@@ -158,11 +174,13 @@ namespace Car_Rental.Controllers
                 brand = car.Brand,
                 model = car.Model,
                 year = car.Year,
+                registrationNumber = car.RegistrationNumber,
                 rentalPricePerDay = car.RentalPricePerDay,
                 offerPercentage = car.OfferPercentage,
                 offerAmount = car.OfferAmount,
                 fuelType = car.FuelType.ToString(),
                 transmission = car.Transmission.ToString(),
+                status = car.Status.ToString(),
                 rating = averageRating,
                 totalReviews = totalReviews,
                 numberOfSeats = car.NumberOfSeats,
@@ -170,7 +188,14 @@ namespace Car_Rental.Controllers
                 mileage = car.Mileage
             };
 
-            return Json(carDetails);
+                return Json(carDetails);
+            }
+            catch (Exception ex)
+            {
+                // Log the error and return a proper error response
+                Console.WriteLine($"Error in GetCarDetails: {ex.Message}");
+                return StatusCode(500, new { error = "Failed to retrieve car details", message = ex.Message });
+            }
         }
 
 

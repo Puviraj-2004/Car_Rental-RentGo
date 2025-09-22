@@ -244,8 +244,31 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: white; /* icon stays white */
         }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+            color: white; /* text inside profile-info is white */
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: white; /* ensure name is white */
+        }
+
+        .profile-info small {
+            color: rgba(255,255,255,0.7); /* slightly lighter for subtitle */
+        }
+
+
 
         .profile-avatar-large {
             width: 50px;
@@ -262,18 +285,6 @@
             min-width: 280px;
         }
 
-        .notification-dropdown {
-            min-width: 300px;
-        }
-
-        .notification-dropdown .dropdown-item {
-            padding: 12px 20px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .notification-dropdown .dropdown-item:hover {
-            background-color: #f8f9fa;
-        }
 
         .btn-outline-light:hover {
             background-color: rgba(255,255,255,0.2);
@@ -285,16 +296,14 @@
             padding: 8px 16px;
             border-radius: 8px;
             transition: all 0.3s ease;
+            color: white; /* ensure text is white */
         }
 
-        .admin-profile:hover {
-            background-color: rgba(255,255,255,0.1);
-            transform: translateY(-1px);
-        }
+            .admin-profile:hover {
+                background-color: rgba(255,255,255,0.1);
+                transform: translateY(-1px);
+            }
 
-        .cursor-pointer {
-            cursor: pointer;
-        }
 
         /* Admin Footer Styles */
         .admin-footer {

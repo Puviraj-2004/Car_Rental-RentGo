@@ -1,4 +1,4 @@
-﻿using Car_Rental.Data;
+using Car_Rental.Data;
 using Car_Rental.Enum;
 using Car_Rental.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -74,16 +74,6 @@ namespace Car_Rental.Controllers
             // For now, only linking to Users is the standard approach.
 
             _context.Payments.Add(payment);
-
-            // This logic is now correct as we have removed the driver concept.
-            // We can safely delete this block if drivers are no longer part of bookings.
-            /*
-            if (invoice.Booking.DriverID.HasValue)
-            {
-                var driver = await _context.Drivers.FindAsync(invoice.Booking.DriverID);
-                if (driver != null) driver.Status = DriverStatus.Unavailable;
-            }
-            */
 
             await _context.SaveChangesAsync();
 

@@ -1,4 +1,4 @@
-﻿namespace Car_Rental.Enum
+namespace Car_Rental.Enum
 {
     public enum PaymentType
     {
@@ -6,6 +6,7 @@
         RentalFee,
         DamageFee,
         LateReturnFee,
-        InsuranceFee
+        InsuranceFee,
+        Refund
     }
 }

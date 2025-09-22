@@ -1,4 +1,4 @@
-﻿
+
 namespace Car_Rental.Enum
 {
     public enum PaymentGatewayType
@@ -6,6 +6,7 @@ namespace Car_Rental.Enum
         Stripe,
         PayPal,
         Cash,
-        Card
+        Card,
+        Internal
     }
 }
