@@ -26,29 +26,30 @@ namespace Car_Rental.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Register(User user, string confirmPassword)
+        public IActionResult Register([Bind("Username,Email,Password")] User user, string confirmPassword)
         {
             if (!ModelState.IsValid)
-            {
                 return View(user);
-            }
+
             if (user.Password != confirmPassword)
             {
                 ViewBag.PasswordError = "❌ The password and confirmation password do not match.";
                 return View(user);
             }
 
-            user.Password = _passwordHasher.HashPassword(user, user.Password);
-
+            // Always set Role server-side
             user.Role = "Customer";
             user.MustChangePassword = false;
+
+            user.Password = _passwordHasher.HashPassword(user, user.Password);
 
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            TempData["SuccessMessage"] = $"✅ Registration successful! Please log in.";
+            TempData["SuccessMessage"] = "✅ Registration successful! Please log in.";
             return RedirectToAction("Login");
         }
+
 
         public IActionResult Login()
         {
